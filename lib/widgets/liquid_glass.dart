@@ -271,10 +271,10 @@ class _LiquidSegmentedPillState extends State<LiquidSegmentedPill>
     super.initState();
     _previousIndex = widget.selectedIndex;
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 280),
+      duration: const Duration(milliseconds: 380),
       vsync: this,
     );
-    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOutBack);
+    _animation = CurvedAnimation(parent: _controller, curve: const Cubic(0.2, 0.9, 0.2, 1.0));
     _controller.value = 1.0;
   }
 
@@ -356,7 +356,7 @@ class _LiquidSegmentedPillState extends State<LiquidSegmentedPill>
                         behavior: HitTestBehavior.opaque,
                         child: Center(
                           child: AnimatedDefaultTextStyle(
-                            duration: const Duration(milliseconds: 200),
+                            duration: const Duration(milliseconds: 300),
                             curve: Curves.easeOutCubic,
                             style: TextStyle(
                               fontSize: 14,
@@ -396,6 +396,7 @@ class _ElasticPress extends StatefulWidget {
 
 class _ElasticPressState extends State<_ElasticPress> {
   bool _pressed = false;
+  bool _hovered = false;
 
   void _setPressed(bool value) {
     if (mounted && _pressed != value) {
@@ -405,15 +406,19 @@ class _ElasticPressState extends State<_ElasticPress> {
 
   @override
   Widget build(BuildContext context) {
-    return Listener(
-      onPointerDown: (_) => _setPressed(true),
-      onPointerUp: (_) => _setPressed(false),
-      onPointerCancel: (_) => _setPressed(false),
-      child: AnimatedScale(
-        scale: _pressed ? 0.96 : 1.0,
-        duration: const Duration(milliseconds: 110),
-        curve: Curves.easeOutCubic,
-        child: widget.child,
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: Listener(
+        onPointerDown: (_) => _setPressed(true),
+        onPointerUp: (_) => _setPressed(false),
+        onPointerCancel: (_) => _setPressed(false),
+        child: AnimatedScale(
+          scale: _pressed ? 0.97 : (_hovered ? 1.012 : 1.0),
+          duration: _pressed ? const Duration(milliseconds: 150) : const Duration(milliseconds: 240),
+          curve: _pressed ? Curves.easeOutQuad : Curves.easeOutBack,
+          child: widget.child,
+        ),
       ),
     );
   }

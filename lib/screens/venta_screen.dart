@@ -36,6 +36,7 @@ class _VentaScreenState extends State<VentaScreen> {
   final List<ItemVenta> _carrito = [];
   final formatMoneda = NumberFormat.currency(locale: 'es_MX', symbol: '\$');
   int _tabSeleccionada = 1;
+  int _tabAnterior = 1;
   bool _modoNoche = false;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -204,6 +205,7 @@ class _VentaScreenState extends State<VentaScreen> {
       }
       setState(() {
         _carrito[index].cantidad++;
+        _tabAnterior = _tabSeleccionada;
         _tabSeleccionada = 1;
       });
     } else {
@@ -218,6 +220,7 @@ class _VentaScreenState extends State<VentaScreen> {
             gravaIeps: item.gravaIeps,
           ),
         );
+        _tabAnterior = _tabSeleccionada;
         _tabSeleccionada = 1;
       });
     }
@@ -2742,25 +2745,35 @@ class _VentaScreenState extends State<VentaScreen> {
                   labels: const ['PRODUCTOS', 'VENTA', 'INFORME'],
                   selectedIndex: _tabSeleccionada,
                   isDark: _modoNoche,
-                  onChanged: (index) => setState(() => _tabSeleccionada = index),
+                  onChanged: (index) {
+                    if (index == _tabSeleccionada) return;
+                    setState(() {
+                      _tabAnterior = _tabSeleccionada;
+                      _tabSeleccionada = index;
+                    });
+                  },
                 ),
               ),
               const SizedBox(height: 12),
               Expanded(
                 child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 240),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder: (child, animation) => FadeTransition(
-                    opacity: animation,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0.03, 0),
-                        end: Offset.zero,
-                      ).animate(animation),
-                      child: child,
-                    ),
-                  ),
+                  duration: const Duration(milliseconds: 340),
+                  switchInCurve: const Cubic(0.2, 0.9, 0.2, 1.0),
+                  switchOutCurve: const Cubic(0.2, 0.9, 0.2, 1.0),
+                  transitionBuilder: (child, animation) {
+                    final bool vaADerecha = _tabSeleccionada >= _tabAnterior;
+                    final bool esEntrante = child.key == ValueKey<int>(_tabSeleccionada);
+                    final Offset inicio = esEntrante
+                        ? Offset(vaADerecha ? 0.06 : -0.06, 0)
+                        : Offset(vaADerecha ? -0.06 : 0.06, 0);
+                    return FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: Tween<Offset>(begin: inicio, end: Offset.zero).animate(animation),
+                        child: child,
+                      ),
+                    );
+                  },
                   child: KeyedSubtree(
                     key: ValueKey<int>(_tabSeleccionada),
                     child: _tabSeleccionada == 0
