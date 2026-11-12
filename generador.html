@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Terminales • Vektor POS</title>
+  <style>
+    :root {
+      --primary: #0097A7;
+      --primary-dark: #00838F;
+      --accent: #26C6DA;
+      --bg: #ECEFF1;
+      --card-bg: #FFFFFF;
+      --text-main: #263238;
+      --text-muted: #607D8B;
+      --green: #2E7D32;
+      --red: #C62828;
+      --orange: #EF6C00;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background-color: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+
+    .btn:hover { background-color: var(--primary-dark); }
+    .btn-secondary { background-color: #78909C; }
+    .btn-secondary:hover { background-color: #546E7A; }
+
+    /* Barra de búsqueda y nuevo registro */
+    .toolbar {
+      background: var(--card-bg);
+      padding: 16px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      margin-bottom: 24px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 220px;
+      padding: 10px 14px;
+      border: 1px solid #CFD8DC;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    /* Grid de tarjetas */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      border: 1px solid #E0E0E0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin: 0 0 4px 0;
+    }
+
+    .badge-id {
+      display: inline-block;
+      font-family: monospace;
+      background: #E0F7FA;
+      color: var(--primary-dark);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    /* Estado / Semáforo */
+    .status-pill {
+      font-size: 11px;
+      font-weight: bold;
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-active { background: #E8F5E9; color: var(--green); border: 1px solid #A5D6A7; }
+    .status-expired { background: #FFEBEE; color: var(--red); border: 1px solid #FFCDD2; }
+    .status-disabled { background: #ECEFF1; color: #78909C; border: 1px solid #CFD8DC; }
+
+    /* Switch toggle */
+    .switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #F8F9FA;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 14px;
+      border: 1px solid #EEEEEE;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #B0BEC5; transition: .25s; border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px;
+      background-color: white; transition: .25s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--green); }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    /* Campos de fecha */
+    .date-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .date-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .date-group input {
+      width: 100%;
+      padding: 8px;
+      font-size: 13px;
+      border: 1px solid #CFD8DC;
+      border-radius: 6px;
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    .quick-days {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .quick-days button {
+      flex: 1;
+      padding: 6px;
+      background: #E0F2F1;
+      color: var(--primary-dark);
+      border: 1px solid #B2DFDB;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-update {
+      width: 100%;
+      padding: 10px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+      grid-column: 1 / -1;
+    }
+
+    /* Modal nuevo registro */
+    .modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      z-index: 100;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      max-width: 420px;
+      width: 100%;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Tablero de Licencias • Vektor</h1>
+      <div class="header-actions">
+        <button class="btn btn-secondary" onclick="cargarTerminales()">Actualizar</button>
+        <button class="btn" onclick="abrirModalNuevo()">+ Nueva Terminal</button>
+      </div>
+    </header>
+
+    <div class="toolbar">
+      <input type="text" id="busqueda" class="search-input" placeholder="Buscar por Terminal ID o Nombre de Ruta..." oninput="filtrarTarjetas()">
+    </div>
+
+    <div id="gridTerminales" class="grid">
+      <div class="empty-state">Cargando terminales registradas...</div>
+    </div>
+  </div>
+
+  <!-- Modal para registrar una nueva terminal -->
+  <div id="modalNuevo" class="modal">
+    <div class="modal-content">
+      <h3 style="margin-top:0; color:var(--primary);">Registrar Terminal</h3>
+      
+      <label style="font-size:12px; font-weight:600; color:var(--text-muted);">Terminal ID (Hardware):</label>
+      <input type="text" id="nuevoId" placeholder="Ej. POS-5541" style="width:100%; padding:10px; margin:6px 0 12px; text-transform:uppercase; border:1px solid #CFD8DC; border-radius:6px; box-sizing:border-box;">
+
+      <label style="font-size:12px; font-weight:600; color:var(--text-muted);">Nombre / Ruta:</label>
+      <input type="text" id="nuevoAlias" placeholder="Ej. Ruta 30 - Bokados SLP" style="width:100%; padding:10px; margin:6px 0 12px; border:1px solid #CFD8DC; border-radius:6px; box-sizing:border-box;">
+
+      <div class="date-row">
+        <div class="date-group">
+          <label>Inicio:</label>
+          <input type="date" id="nuevoInicio">
+        </div>
+        <div class="date-group">
+          <label>Término:</label>
+          <input type="date" id="nuevoTermino">
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+        <button class="btn btn-secondary" onclick="cerrarModalNuevo()">Cancelar</button>
+        <button class="btn" onclick="crearTerminal()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // URL base oficial de tu Realtime Database
+    const FIREBASE_URL = "https://vektor-pos-default-rtdb.firebaseio.com";
+    let terminalesLocales = {};
+
+    window.addEventListener('DOMContentLoaded', () => {
+      cargarTerminales();
+      const hoy = new Date().toISOString().split('T')[0];
+      document.getElementById('nuevoInicio').value = hoy;
+      
+      const unMes = new Date();
+      unMes.setDate(unMes.getDate() + 30);
+      document.getElementById('nuevoTermino').value = unMes.toISOString().split('T')[0];
+    });
+
+    async function cargarTerminales() {
+      const grid = document.getElementById('gridTerminales');
+      grid.innerHTML = '<div class="empty-state">Consultando la nube...</div>';
+
+      try {
+        const res = await fetch(`${FIREBASE_URL}/licencias.json`);
+        const data = await res.json();
+        terminalesLocales = data || {};
+        renderizarTarjetas();
+      } catch (err) {
+        grid.innerHTML = '<div class="empty-state" style="color:var(--red);">Error al conectar con Firebase. Revisa tu conexión o URL.</div>';
+      }
+    }
+
+    function renderizarTarjetas(filtro = '') {
+      const grid = document.getElementById('gridTerminales');
+      grid.innerHTML = '';
+
+      const keys = Object.keys(terminalesLocales).filter(k => {
+        const item = terminalesLocales[k] || {};
+        const alias = (item.alias || '').toLowerCase();
+        const termId = k.toLowerCase();
+        return alias.includes(filtro.toLowerCase()) || termId.includes(filtro.toLowerCase());
+      });
+
+      if (keys.length === 0) {
+        grid.innerHTML = '<div class="empty-state">No se encontraron terminales registradas.</div>';
+        return;
+      }
+
+      const ahora = new Date();
+
+      keys.forEach(id => {
+        const t = terminalesLocales[id] || {};
+        const alias = t.alias || 'Sin Asignar';
+        const activo = t.activo === true;
+        const inicio = t.inicio || new Date().toISOString().split('T')[0];
+        
+        let terminoFecha = '';
+        if (t.vence) {
+          terminoFecha = t.vence.split('T')[0];
+        } else {
+          terminoFecha = inicio;
+        }
+
+        // Evaluación de estado
+        const fechaFin = new Date(`${terminoFecha}T23:59:59`);
+        const vencidoPorFecha = ahora > fechaFin;
+
+        let statusClass = 'status-disabled';
+        let statusLabel = 'Inactivo';
+
+        if (!activo) {
+          statusClass = 'status-disabled';
+          statusLabel = 'Apagado';
+        } else if (vencidoPorFecha) {
+          statusClass = 'status-expired';
+          statusLabel = 'Vencido';
+        } else {
+          statusClass = 'status-active';
+          statusLabel = 'Activo';
+        }
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.id = `card-${id}`;
+        card.innerHTML = `
+          <div>
+            <div class="card-header">
+              <div>
+                <h4 class="card-title">${alias}</h4>
+                <span class="badge-id">${id}</span>
+              </div>
+              <span class="status-pill ${statusClass}">${statusLabel}</span>
+            </div>
+
+            <div class="switch-row">
+              <span style="font-size:13px; font-weight:600;">Switch de Servicio:</span>
+              <label class="switch">
+                <input type="checkbox" id="switch-${id}" ${activo ? 'checked' : ''}>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="date-row">
+              <div class="date-group">
+                <label>Inicio:</label>
+                <input type="date" id="inicio-${id}" value="${inicio}">
+              </div>
+              <div class="date-group">
+                <label>Término:</label>
+                <input type="date" id="termino-${id}" value="${terminoFecha}">
+              </div>
+            </div>
+
+            <div class="quick-days">
+              <button type="button" onclick="extenderDias('${id}', 15)">+15 Días</button>
+              <button type="button" onclick="extenderDias('${id}', 30)">+30 Días</button>
+            </div>
+          </div>
+
+          <button class="btn-update" onclick="actualizarTerminal('${id}')">Guardar Cambios</button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function filtrarTarjetas() {
+      const valor = document.getElementById('busqueda').value;
+      renderizarTarjetas(valor);
+    }
+
+    function extenderDias(id, dias) {
+      const terminoInput = document.getElementById(`termino-${id}`);
+      const fechaBase = terminoInput.value ? new Date(terminoInput.value + "T12:00:00") : new Date();
+      fechaBase.setDate(fechaBase.getDate() + dias);
+      terminoInput.value = fechaBase.toISOString().split('T')[0];
+    }
+
+    async function actualizarTerminal(id) {
+      const switchEl = document.getElementById(`switch-${id}`);
+      const inicio = document.getElementById(`inicio-${id}`).value;
+      const termino = document.getElementById(`termino-${id}`).value;
+      const btn = document.querySelector(`#card-${id} .btn-update`);
+
+      if (!termino) {
+        alert('Debes definir una fecha de término.');
+        return;
+      }
+
+      btn.innerText = 'Guardando...';
+      btn.style.opacity = '0.7';
+
+      const payload = {
+        activo: switchEl.checked,
+        inicio: inicio,
+        vence: `${termino}T23:59:59`
+      };
+
+      try {
+        const res = await fetch(`${FIREBASE_URL}/licencias/${id}.json`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          terminalesLocales[id] = { ...terminalesLocales[id], ...payload };
+          btn.innerText = '¡Guardado con éxito!';
+          btn.style.backgroundColor = 'var(--green)';
+          setTimeout(() => {
+            renderizarTarjetas(document.getElementById('busqueda').value);
+          }, 600);
+        } else {
+          throw new Error();
+        }
+      } catch (e) {
+        btn.innerText = 'Error al guardar';
+        btn.style.backgroundColor = 'var(--red)';
+        setTimeout(() => {
+          btn.innerText = 'Guardar Cambios';
+          btn.style.backgroundColor = 'var(--primary)';
+          btn.style.opacity = '1';
+        }, 1500);
+      }
+    }
+
+    /* Modal Nuevo Registro */
+    function abrirModalNuevo() {
+      document.getElementById('modalNuevo').style.display = 'flex';
+    }
+
+    function cerrarModalNuevo() {
+      document.getElementById('modalNuevo').style.display = 'none';
+    }
+
+    async function crearTerminal() {
+      const id = document.getElementById('nuevoId').value.trim().toUpperCase();
+      const alias = document.getElementById('nuevoAlias').value.trim();
+      const inicio = document.getElementById('nuevoInicio').value;
+      const termino = document.getElementById('nuevoTermino').value;
+
+      if (!id || !alias || !termino) {
+        alert('Por favor completa todos los campos.');
+        return;
+      }
+
+      const payload = {
+        alias: alias,
+        activo: true,
+        inicio: inicio,
+        vence: `${termino}T23:59:59`
+      };
+
+      try {
+        const res = await fetch(`${FIREBASE_URL}/licencias/${id}.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          cerrarModalNuevo();
+          document.getElementById('nuevoId').value = '';
+          document.getElementById('nuevoAlias').value = '';
+          cargarTerminales();
+        }
+      } catch (err) {
+        alert('Error al registrar en la nube.');
+      }
+    }
+  </script>
+</body>
+</html>

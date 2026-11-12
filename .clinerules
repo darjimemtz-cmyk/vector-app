@@ -1,0 +1,18 @@
+# REGLAS QUIRÚRGICAS DE ARQUITECTURA - VEKTOR POS
+
+1. EDICIÓN QUIRÚRGICA OBLIGATORIA:
+- PROHIBIDO usar `write_to_file` sobre archivos existentes (especialmente `lib/screens/venta_screen.dart` y `lib/main.dart`).
+- Usar EXCLUSIVAMENTE `replace_in_file` con bloques pequeños y delimitados.
+- PROHIBIDO crear scripts temporales en Python o PowerShell (`c:/temp/...`) para generar o reescribir código Dart.
+
+2. GESTIÓN DE CONTEXTO Y ARCHIVOS PROTEGIDOS:
+- Nunca leer ni modificar `lib/data/catalogo_datos.dart`, `lib/services/ticket_service.dart` ni `lib/services/licencia_service.dart` salvo instrucción explícita.
+- No tocar la lógica de cálculo de IEPS (8%), inventario ni comandos ZPL (`^XA...^XZ`).
+
+3. ESTÁNDARES UI/UX Y RESPONSIVIDAD:
+- Todo cambio visual debe usar `LiquidGlassContainer` y `LiquidMeshBackground` de `lib/widgets/liquid_glass.dart`.
+- Soportar Tema Dual Nativo (`_modoNoche` persistido en `SharedPreferences`) con paleta Luminous Blue (`#1E40FF` / `#4F75FF`) y Electric Jade (`#00D09C`).
+- Garantizar responsividad móvil/tablet (`LayoutBuilder` breakpoint `600px`) y respeto a navegación por gestos o 3 botones (`SafeArea` + `MediaQuery.viewPaddingOf(context).bottom`).
+
+4. VALIDACIÓN LIGERA:
+- Validar cambios ÚNICAMENTE con `flutter analyze`. PROHIBIDO ejecutar `flutter build apk` salvo que el usuario lo pida explícitamente.
