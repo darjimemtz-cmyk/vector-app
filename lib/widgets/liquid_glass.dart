@@ -49,28 +49,28 @@ class LiquidGlassContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectiveBorderRadius = BorderRadius.circular(borderRadius);
 
-    return ClipRRect(
-      borderRadius: effectiveBorderRadius,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
-        child: Container(
-          margin: margin,
-          padding: padding,
-          decoration: BoxDecoration(
-            borderRadius: effectiveBorderRadius,
-            gradient: _buildInternalGradient(),
-            border: Border.all(
-              color: Colors.transparent,
-              width: 1.2,
-            ),
-            boxShadow: _buildAmbientShadows(),
-          ),
+    return Container(
+      margin: margin,
+      decoration: BoxDecoration(
+        boxShadow: _buildAmbientShadows(),
+      ),
+      child: ClipRRect(
+        borderRadius: effectiveBorderRadius,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
           child: CustomPaint(
-            painter: _SpecularRimPainter(
+            foregroundPainter: _SpecularRimPainter(
               borderRadius: borderRadius,
               isDark: isDark,
             ),
-            child: child,
+            child: Container(
+              padding: padding,
+              decoration: BoxDecoration(
+                borderRadius: effectiveBorderRadius,
+                gradient: _buildInternalGradient(),
+              ),
+              child: child,
+            ),
           ),
         ),
       ),
@@ -155,8 +155,8 @@ class _SpecularRimPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return oldDelegate is _SpecularRimPainter &&
-        oldDelegate.borderRadius != borderRadius &&
-        oldDelegate.isDark != isDark;
+        (oldDelegate.borderRadius != borderRadius ||
+         oldDelegate.isDark != isDark);
   }
 }
 
