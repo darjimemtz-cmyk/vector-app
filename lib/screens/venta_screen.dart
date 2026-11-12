@@ -45,10 +45,7 @@ class _VentaScreenState extends State<VentaScreen> {
 
   String _nombreNegocio = 'NACIONAL DE ALIMENTOS Y HELADOS';
   String _rfc = 'NAH850320159';
-  String _datosNegocio = 'AV SAN JERONIMO 307 # 307
-SAN JERONIMO
-MONTERREY, NUEVO LEON
-C.P. 64640';
+  String _datosNegocio = 'AV SAN JERONIMO 307 # 307\nSAN JERONIMO\nMONTERREY, NUEVO LEON\nC.P. 64640';
   String _telefono = '81222300';
   String _vendedor = '';
   String _sucursal = '23 SAN LUIS POTOSI';
@@ -425,7 +422,8 @@ C.P. 64640';
                       icon: Icons.sync,
                       onPressed: () async {
                         setModalState(() {});
-                        final activa = await LicenciaService.sincronizarYValidar();
+                        await LicenciaService.sincronizarEnLinea();
+                        final activa = await LicenciaService.isLicenciaValida();
                         final nuevaFecha = await LicenciaService.obtenerFechaVencimiento();
                         setState(() {
                           _licenciaActiva = activa;
@@ -841,7 +839,7 @@ C.P. 64640';
                       controller: pagoController,
                       label: 'Efectivo recibido',
                       prefix: '\$ ',
-                      keyboardType: const TextInputType.numberWithOptions(decimal: True),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       isDark: _modoNoche,
                       onChanged: (valor) {
                         final double monto = double.tryParse(valor) ?? 0.0;
@@ -894,7 +892,7 @@ C.P. 64640';
                       Expanded(
                         child: LiquidPillButton(
                           label: 'Cancelar',
-                          isPrimary: False,
+                          isPrimary: false,
                           isDark: _modoNoche,
                           onPressed: () => Navigator.pop(context),
                         ),
@@ -903,7 +901,7 @@ C.P. 64640';
                       Expanded(
                         child: LiquidPillButton(
                           label: 'Confirmar Cobro',
-                          isPrimary: True,
+                          isPrimary: true,
                           isDark: _modoNoche,
                           onPressed: () {
                             final double montoEfectivo = metodoPago == 'EFECTIVO'
@@ -975,7 +973,7 @@ C.P. 64640';
     final nombreController = TextEditingController();
     final precioController = TextEditingController();
     final stockController = TextEditingController(text: '15');
-    bool gravaIepsLocal = True;
+    bool gravaIepsLocal = true;
 
     showDialog(
       context: context,
@@ -1004,7 +1002,7 @@ C.P. 64640';
                 controller: precioController,
                 label: 'Precio P.U. (Sin IEPS)',
                 prefix: '\$ ',
-                keyboardType: const TextInputType.numberWithOptions(decimal: True),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 isDark: _modoNoche,
               ),
               const SizedBox(height: 12),
@@ -1061,7 +1059,7 @@ C.P. 64640';
                   Expanded(
                     child: LiquidPillButton(
                       label: 'Cancelar',
-                      isPrimary: False,
+                      isPrimary: false,
                       isDark: _modoNoche,
                       onPressed: () => Navigator.pop(context),
                     ),
@@ -1070,7 +1068,7 @@ C.P. 64640';
                   Expanded(
                     child: LiquidPillButton(
                       label: 'Guardar',
-                      isPrimary: True,
+                      isPrimary: true,
                       isDark: _modoNoche,
                       onPressed: () {
                         final nombre = nombreController.text.trim();
@@ -1137,7 +1135,7 @@ C.P. 64640';
                 controller: precioController,
                 label: 'Precio P.U. (Sin IEPS)',
                 prefix: '\$ ',
-                keyboardType: const TextInputType.numberWithOptions(decimal: True),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 isDark: _modoNoche,
               ),
               const SizedBox(height: 12),
@@ -1194,7 +1192,7 @@ C.P. 64640';
                   Expanded(
                     child: LiquidPillButton(
                       label: 'Cancelar',
-                      isPrimary: False,
+                      isPrimary: false,
                       isDark: _modoNoche,
                       onPressed: () => Navigator.pop(context),
                     ),
@@ -1203,7 +1201,7 @@ C.P. 64640';
                   Expanded(
                     child: LiquidPillButton(
                       label: 'Guardar Cambios',
-                      isPrimary: True,
+                      isPrimary: true,
                       isDark: _modoNoche,
                       onPressed: () {
                         final nombre = nombreController.text.trim();
@@ -1357,7 +1355,7 @@ C.P. 64640';
                   Expanded(
                     child: LiquidPillButton(
                       label: 'Nuevo Cliente',
-                      isPrimary: True,
+                      isPrimary: true,
                       isDark: _modoNoche,
                       icon: Icons.person_add,
                       onPressed: () {
@@ -1370,7 +1368,7 @@ C.P. 64640';
                   Expanded(
                     child: LiquidPillButton(
                       label: 'Cerrar',
-                      isPrimary: False,
+                      isPrimary: false,
                       isDark: _modoNoche,
                       onPressed: () => Navigator.pop(context),
                     ),
@@ -1421,7 +1419,7 @@ C.P. 64640';
                 Expanded(
                   child: LiquidPillButton(
                     label: 'Cancelar',
-                    isPrimary: False,
+                    isPrimary: false,
                     isDark: _modoNoche,
                     onPressed: () => Navigator.pop(context),
                   ),
@@ -1430,7 +1428,7 @@ C.P. 64640';
                 Expanded(
                   child: LiquidPillButton(
                     label: 'Guardar',
-                    isPrimary: True,
+                    isPrimary: true,
                     isDark: _modoNoche,
                     onPressed: () {
                       if (nombreCtrl.text.trim().isNotEmpty && acdCtrl.text.trim().isNotEmpty) {
@@ -1492,7 +1490,7 @@ C.P. 64640';
                 Expanded(
                   child: LiquidPillButton(
                     label: 'Cancelar',
-                    isPrimary: False,
+                    isPrimary: false,
                     isDark: _modoNoche,
                     onPressed: () => Navigator.pop(context),
                   ),
@@ -1501,7 +1499,7 @@ C.P. 64640';
                 Expanded(
                   child: LiquidPillButton(
                     label: 'Guardar',
-                    isPrimary: True,
+                    isPrimary: true,
                     isDark: _modoNoche,
                     onPressed: () {
                       if (nombreCtrl.text.trim().isNotEmpty && acdCtrl.text.trim().isNotEmpty) {
@@ -1531,15 +1529,15 @@ C.P. 64640';
 
   void _comprobarActualizacionDisponible() async {
     try {
-      final info = await ActualizacionService.obtenerInfoActualizacion();
+      final info = await ActualizacionService.verificarActualizacion();
       final versionActual = '2.1.0';
       final partesActual = versionActual.split('.').map(int.parse).toList();
       final partesNueva = (info['version_nombre'] ?? '2.1.0').split('.').map(int.parse).toList();
 
-      bool hayNueva = False;
+      bool hayNueva = false;
       for (int i = 0; i < 3; i++) {
         if (partesNueva[i] > partesActual[i]) {
-          hayNueva = True;
+          hayNueva = true;
           break;
         } else if (partesNueva[i] < partesActual[i]) {
           break;
@@ -1553,13 +1551,13 @@ C.P. 64640';
   }
 
   void _mostrarDialogoActualizacion(Map<String, dynamic> info) {
-    bool descargando = False;
+    bool descargando = false;
     double progreso = 0.0;
     String estadoTexto = '';
 
     showDialog(
       context: context,
-      barrierDismissible: False,
+      barrierDismissible: false,
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) => LiquidDialog(
           isDark: _modoNoche,
@@ -1601,7 +1599,7 @@ C.P. 64640';
               if (descargando) ...[
                 const SizedBox(height: 16),
                 LinearProgressIndicator(
-                  value: progreso > 0 ? progreso : None,
+                  value: progreso > 0 ? progreso : null,
                   backgroundColor: (_modoNoche ? LiquidColors.surfaceDark : Colors.grey.shade300),
                   color: _modoNoche ? LiquidColors.luminousBlueDark : LiquidColors.luminousBlueLight,
                 ),
@@ -1621,7 +1619,7 @@ C.P. 64640';
                     Expanded(
                       child: LiquidPillButton(
                         label: 'Más tarde',
-                        isPrimary: False,
+                        isPrimary: false,
                         isDark: _modoNoche,
                         onPressed: () => Navigator.pop(context),
                       ),
@@ -1630,14 +1628,14 @@ C.P. 64640';
                     Expanded(
                       child: LiquidPillButton(
                         label: 'Actualizar ahora',
-                        isPrimary: True,
+                        isPrimary: true,
                         isDark: _modoNoche,
                         onPressed: () {
                           final String url = info['url_descarga'] ?? '';
                           if (url.isEmpty) return;
 
                           setModalState(() {
-                            descargando = True;
+                            descargando = true;
                             estadoTexto = 'Iniciando descarga...';
                           });
 
@@ -1654,11 +1652,11 @@ C.P. 64640';
                                     estadoTexto = 'Abriendo instalador de Android...';
                                     break;
                                   case OtaStatus.PERMISSION_NOT_GRANTED_ERROR:
-                                    descargando = False;
+                                    descargando = false;
                                     estadoTexto = 'Permiso denegado para instalar.';
                                     break;
                                   default:
-                                    descargando = False;
+                                    descargando = false;
                                     estadoTexto = 'Error al actualizar ().';
                                     break;
                                 }
@@ -1666,7 +1664,7 @@ C.P. 64640';
                             },
                             onError: (_) {
                               setModalState(() {
-                                descargando = False;
+                                descargando = false;
                                 estadoTexto = 'Fallo de conexión al descargar.';
                               });
                             },
@@ -1679,7 +1677,7 @@ C.P. 64640';
               else
                 LiquidPillButton(
                   label: 'Cerrar',
-                  isPrimary: True,
+                  isPrimary: true,
                   isDark: _modoNoche,
                   onPressed: () => Navigator.pop(context),
                 ),
@@ -1721,11 +1719,11 @@ C.P. 64640';
               final item = catalogoFiltrado[index];
               return LiquidProductCard(
                 title: '',
-                subtitle: 'Stock:  • \',
+                subtitle: 'Stock:  • ',
                 price: formatMoneda.format(item.precioUnitario),
                 gravaIeps: item.gravaIeps,
                 isDark: _modoNoche,
-                isCatalog: True,
+                isCatalog: true,
                 onTap: () => _agregarAlCarrito(item),
                 onIncrement: () => _agregarAlCarrito(item),
               );
@@ -2160,7 +2158,7 @@ C.P. 64640';
                     Expanded(
                       child: LiquidPillButton(
                         label: 'Limpiar',
-                        isPrimary: False,
+                        isPrimary: false,
                         isDark: _modoNoche,
                         icon: Icons.delete_sweep,
                         onPressed: _limpiarVenta,
@@ -2170,7 +2168,7 @@ C.P. 64640';
                     Expanded(
                       child: LiquidPillButton(
                         label: 'Hecho (Cobrar)',
-                        isPrimary: True,
+                        isPrimary: true,
                         isDark: _modoNoche,
                         icon: Icons.point_of_sale,
                         onPressed: _mostrarDialogoCobro,
@@ -2188,7 +2186,7 @@ C.P. 64640';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: True,
+      extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
       appBar: LiquidAppBar(
         title: 'POS Lite',
@@ -2198,7 +2196,7 @@ C.P. 64640';
       body: LiquidMeshBackground(
         isDark: _modoNoche,
         child: SafeArea(
-          bottom: False,
+          bottom: false,
           child: Column(
             children: [
               const SizedBox(height: 8),
@@ -2339,7 +2337,7 @@ class _LiquidTextField extends StatelessWidget {
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
-          prefixIcon: prefixIcon != None ? Icon(prefixIcon, size: 20, color: borderColor) : None,
+          prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20, color: borderColor) : null,
           prefixText: prefix,
           prefixStyle: TextStyle(color: textColor, fontSize: 15),
           labelStyle: TextStyle(
@@ -2350,7 +2348,7 @@ class _LiquidTextField extends StatelessWidget {
             color: isDark ? LiquidColors.luminousBlueDark : LiquidColors.luminousBlueLight,
           ),
           border: InputBorder.none,
-          isDense: True,
+          isDense: true,
           contentPadding: EdgeInsets.zero,
         ),
       ),
