@@ -37,11 +37,13 @@ class _VentaScreenState extends State<VentaScreen> {
   final formatMoneda = NumberFormat.currency(locale: 'es_MX', symbol: '\$');
   int _tabSeleccionada = 1;
   bool _modoNoche = false;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<ItemVenta> _catalogo = List.from(catalogoInicial);
   final List<Map<String, dynamic>> _historialVentas = [];
   final List<Cliente> _clientes = [];
   String _filtroBusqueda = '';
+  final TextEditingController _searchController = TextEditingController();
 
   String _nombreNegocio = 'NACIONAL DE ALIMENTOS Y HELADOS';
   String _rfc = 'NAH850320159';
@@ -63,6 +65,12 @@ class _VentaScreenState extends State<VentaScreen> {
     super.initState();
     _modoNoche = widget.isDarkMode;
     _cargarDatosLocales();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _cargarDatosLocales() async {
@@ -176,7 +184,7 @@ class _VentaScreenState extends State<VentaScreen> {
   void _agregarAlCarrito(ItemVenta item) {
     if (item.stock <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('¡ está agotado!')),
+        SnackBar(content: Text('¡${item.descripcion} está agotado!')),
       );
       return;
     }
@@ -185,7 +193,7 @@ class _VentaScreenState extends State<VentaScreen> {
     if (index >= 0) {
       if (_carrito[index].cantidad >= item.stock) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Stock máximo alcanzado para ')),
+          SnackBar(content: Text('Stock máximo alcanzado para ${item.descripcion}')),
         );
         return;
       }
@@ -223,7 +231,7 @@ class _VentaScreenState extends State<VentaScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                '',
+                item.descripcion,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -233,7 +241,7 @@ class _VentaScreenState extends State<VentaScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Stock disponible:  pzs',
+                'Stock disponible: ${prod.stock} pzs',
                 style: TextStyle(
                   fontSize: 12,
                   color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
@@ -260,7 +268,7 @@ class _VentaScreenState extends State<VentaScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
-                      '',
+                      '${item.cantidad}',
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
@@ -278,7 +286,7 @@ class _VentaScreenState extends State<VentaScreen> {
                           }
                         : () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Límite de stock alcanzado ()')),
+                              SnackBar(content: Text('Límite de stock alcanzado (${prod.stock})')),
                             );
                           },
                     isDark: _modoNoche,
@@ -385,7 +393,7 @@ class _VentaScreenState extends State<VentaScreen> {
               const SizedBox(height: 12),
               if (_fechaVencimiento != null)
                 Text(
-                  'Vence: ',
+                  'Vence: ${DateFormat('dd/MM/yyyy').format(_fechaVencimiento!)}',
                   style: TextStyle(
                     fontSize: 13,
                     color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
@@ -393,7 +401,7 @@ class _VentaScreenState extends State<VentaScreen> {
                 ),
               const SizedBox(height: 12),
               Text(
-                'Terminal ID: ',
+                'Terminal ID: $_terminalId',
                 style: TextStyle(
                   fontFamily: 'monospace',
                   fontSize: 12,
@@ -436,7 +444,7 @@ class _VentaScreenState extends State<VentaScreen> {
                             backgroundColor: activa ? LiquidColors.electricJadeLight : LiquidColors.coralLight,
                             content: Text(
                               activa
-                                  ? '¡Licencia activa hasta el !'
+                                  ? '¡Licencia activa hasta el ${nuevaFecha != null ? DateFormat('dd/MM/yyyy').format(nuevaFecha) : 'vigente'}!'
                                   : 'La terminal sigue suspendida o vencida en el panel.',
                             ),
                           ),
@@ -516,7 +524,7 @@ class _VentaScreenState extends State<VentaScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Únicamente el identificador anónimo de terminal () para validar el estado de licencia (switch activo/fecha de vencimiento) y comprobar actualizaciones OTA disponibles.',
+              'Únicamente el identificador anónimo de terminal ($_terminalId) para validar el estado de licencia (switch activo/fecha de vencimiento) y comprobar actualizaciones OTA disponibles.',
               style: TextStyle(
                 height: 1.4,
                 color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
@@ -770,14 +778,14 @@ class _VentaScreenState extends State<VentaScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Subtotal: ',
+                        'Subtotal: ${formatMoneda.format(subtotalVenta)}',
                         style: TextStyle(
                           fontSize: 13,
                           color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
                         ),
                       ),
                       Text(
-                        'IEPS (8%): ',
+                        'IEPS (8%): ${formatMoneda.format(iepsVenta)}',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
@@ -788,7 +796,7 @@ class _VentaScreenState extends State<VentaScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Total a pagar: ',
+                    'Total a pagar: ${formatMoneda.format(totalVenta)}',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -850,7 +858,7 @@ class _VentaScreenState extends State<VentaScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Cambio: ',
+                      'Cambio: ${formatMoneda.format(cambio)}',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -1077,7 +1085,7 @@ class _VentaScreenState extends State<VentaScreen> {
                           setState(() {
                             _catalogo.add(
                               ItemVenta(
-                                id: '',
+                                id: DateTime.now().millisecondsSinceEpoch.toString(),
                                 descripcion: nombre,
                                 precioUnitario: precio,
                                 stock: stock,
@@ -1321,7 +1329,7 @@ class _VentaScreenState extends State<VentaScreen> {
                                   ),
                                 ),
                                 Text(
-                                  'ACD: ',
+                                  'ACD: ${cliente.acd}',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
@@ -1432,7 +1440,7 @@ class _VentaScreenState extends State<VentaScreen> {
                       if (nombreCtrl.text.trim().isNotEmpty && acdCtrl.text.trim().isNotEmpty) {
                         setState(() {
                           _clientes.add(Cliente(
-                            id: '',
+                            id: DateTime.now().millisecondsSinceEpoch.toString(),
                             nombre: nombreCtrl.text.trim(),
                             acd: acdCtrl.text.trim(),
                           ));
@@ -1580,7 +1588,7 @@ class _VentaScreenState extends State<VentaScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Versión ',
+                'Versión ${info['version_nombre'] ?? ''}',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
@@ -1645,7 +1653,7 @@ class _VentaScreenState extends State<VentaScreen> {
                                   case OtaStatus.DOWNLOADING:
                                     final valor = double.tryParse(event.value ?? '0') ?? 0.0;
                                     progreso = valor / 100.0;
-                                    estadoTexto = 'Descargando: %';
+                                    estadoTexto = 'Descargando: ${valor.toStringAsFixed(0)}%';
                                     break;
                                   case OtaStatus.INSTALLING:
                                     estadoTexto = 'Abriendo instalador de Android...';
@@ -1656,7 +1664,7 @@ class _VentaScreenState extends State<VentaScreen> {
                                     break;
                                   default:
                                     descargando = false;
-                                    estadoTexto = 'Error al actualizar ().';
+                                    estadoTexto = 'Error al actualizar (${event.status.name}).';
                                     break;
                                 }
                               });
@@ -1704,7 +1712,7 @@ class _VentaScreenState extends State<VentaScreen> {
           blurSigma: 16,
           isDark: _modoNoche,
           child: _LiquidTextField(
-            controller: TextEditingController(text: _filtroBusqueda),
+            controller: _searchController,
             label: 'Buscar productos...',
             prefixIcon: Icons.search,
             isDark: _modoNoche,
@@ -1718,8 +1726,8 @@ class _VentaScreenState extends State<VentaScreen> {
             itemBuilder: (context, index) {
               final item = catalogoFiltrado[index];
               return LiquidProductCard(
-                title: '',
-                subtitle: 'Stock:  • ',
+                title: item.descripcion,
+                subtitle: 'Stock: ${item.stock} • ${item.gravaIeps ? 'IEPS' : 'Exento'}',
                 price: formatMoneda.format(item.precioUnitario),
                 gravaIeps: item.gravaIeps,
                 isDark: _modoNoche,
@@ -1813,7 +1821,7 @@ class _VentaScreenState extends State<VentaScreen> {
                       ),
                     ),
                     Text(
-                      '',
+                      '${_historialVentas.length}',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -1847,7 +1855,7 @@ class _VentaScreenState extends State<VentaScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Folio: ',
+                          'Folio: ${venta['folio']}',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -1865,7 +1873,7 @@ class _VentaScreenState extends State<VentaScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Cliente: ',
+                      'Cliente: ${venta['cliente']}',
                       style: TextStyle(
                         fontSize: 13,
                         color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
@@ -1876,7 +1884,7 @@ class _VentaScreenState extends State<VentaScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Método: ',
+                          'Método: ${venta['metodoPago']}',
                           style: TextStyle(
                             fontSize: 12,
                             color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
@@ -1950,7 +1958,7 @@ class _VentaScreenState extends State<VentaScreen> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                'ACD:   •  Ruta ',
+                                'ACD: $_clienteAcd • Ruta $_ruta',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
@@ -2088,10 +2096,10 @@ class _VentaScreenState extends State<VentaScreen> {
               itemBuilder: (context, index) {
                 final item = _carrito[index];
                 return LiquidProductCard(
-                  title: '',
-                  subtitle: 'P.U.:   •  Stock: ',
+                  title: item.descripcion,
+                  subtitle: 'P.U.: ${formatMoneda.format(item.precioUnitario)} • Stock: ${item.stock}',
                   price: formatMoneda.format(item.importe + item.montoIeps),
-                  quantity: '',
+                  quantity: '${item.cantidad}',
                   gravaIeps: item.gravaIeps,
                   isDark: _modoNoche,
                   onIncrement: () {
@@ -2127,14 +2135,14 @@ class _VentaScreenState extends State<VentaScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Subtotal: ',
+                        'Subtotal: ${formatMoneda.format(subtotalVenta)}',
                         style: TextStyle(
                           fontSize: 13,
                           color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
                         ),
                       ),
                       Text(
-                        'IEPS (8%): ',
+                        'IEPS (8%): ${formatMoneda.format(iepsVenta)}',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
@@ -2142,7 +2150,7 @@ class _VentaScreenState extends State<VentaScreen> {
                         ),
                       ),
                       Text(
-                        'TOTAL: ',
+                        'TOTAL: ${formatMoneda.format(totalVenta)}',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
@@ -2209,7 +2217,7 @@ class _VentaScreenState extends State<VentaScreen> {
                 blurSigma: 16,
                 isDark: _modoNoche,
                 child: _LiquidTextField(
-                  controller: TextEditingController(text: _filtroBusqueda),
+                  controller: _searchController,
                   label: 'Buscar productos...',
                   prefixIcon: Icons.search,
                   isDark: _modoNoche,
@@ -2248,8 +2256,8 @@ class _VentaScreenState extends State<VentaScreen> {
       itemBuilder: (context, index) {
         final item = catalogoFiltrado[index];
         return LiquidProductCard(
-          title: '',
-          subtitle: 'Stock: ${item.stock} \u2022 ${item.gravaIeps ? 'IEPS' : 'Exento'}',
+          title: item.descripcion,
+          subtitle: 'Stock: ${item.stock} • ${item.gravaIeps ? 'IEPS' : 'Exento'}',
           price: formatMoneda.format(item.precioUnitario),
           gravaIeps: item.gravaIeps,
           isDark: _modoNoche,
@@ -2471,12 +2479,84 @@ class _VentaScreenState extends State<VentaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
       appBar: LiquidAppBar(
         title: 'POS Lite',
         isDark: _modoNoche,
         onThemeToggle: _alternarModoNoche,
+        onLeadingPress: () => _scaffoldKey.currentState?.openDrawer(),
+      ),
+      drawer: Drawer(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: LiquidGlassContainer(
+          borderRadius: 0,
+          blurSigma: 24,
+          isDark: _modoNoche,
+          child: SafeArea(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _DrawerItem(
+                  icon: Icons.people,
+                  label: 'Clientes',
+                  isDark: _modoNoche,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _mostrarDialogoClientes();
+                  },
+                ),
+                _DrawerItem(
+                  icon: Icons.add_box,
+                  label: 'Nuevo Producto',
+                  isDark: _modoNoche,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _mostrarDialogoNuevoProducto();
+                  },
+                ),
+                _DrawerItem(
+                  icon: Icons.print,
+                  label: 'Impresora Bluetooth',
+                  isDark: _modoNoche,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _mostrarSelectorImpresora();
+                  },
+                ),
+                _DrawerItem(
+                  icon: Icons.settings,
+                  label: 'Configuración Ruta / Empresa',
+                  isDark: _modoNoche,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _mostrarDialogoConfiguracion();
+                  },
+                ),
+                _DrawerItem(
+                  icon: Icons.verified_user,
+                  label: 'Licencia',
+                  isDark: _modoNoche,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _mostrarDialogoLicencia();
+                  },
+                ),
+                _DrawerItem(
+                  icon: Icons.privacy_tip,
+                  label: 'Aviso de Privacidad',
+                  isDark: _modoNoche,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _mostrarDialogoPrivacidad();
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
       body: LiquidMeshBackground(
         isDark: _modoNoche,
@@ -2640,6 +2720,48 @@ class _LiquidTextField extends StatelessWidget {
           border: InputBorder.none,
           isDense: true,
           contentPadding: EdgeInsets.zero,
+        ),
+      ),
+    );
+  }
+}
+
+class _DrawerItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  const _DrawerItem({
+    required this.icon,
+    required this.label,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: isDark ? LiquidColors.luminousBlueDark : LiquidColors.luminousBlueLight,
+              size: 24,
+            ),
+            const SizedBox(width: 16),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: isDark ? LiquidColors.textPrimaryDark : LiquidColors.textPrimaryLight,
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -7,7 +7,7 @@ class LiquidColors {
   static const Color backgroundLight = Color(0xFFF4F6FB);
   static const Color surfaceLight = Color(0xFFFFFFFF);
   static const Color textPrimaryLight = Color(0xFF111827);
-  static const Color textSecondaryLight = Color(0xFF6B7280);
+  static const Color textSecondaryLight = Color(0xFF334155);
   static const Color coralLight = Color(0xFFFF4D6D);
   static const Color indigoAccentLight = Color(0xFF6366F1);
 
@@ -83,8 +83,8 @@ class LiquidGlassContainer extends StatelessWidget {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color(0xFF141C2E),
-          Color(0xFF0C1220),
+          Color(0xCC141C2E),
+          Color(0xB30C1220),
         ],
         stops: [0.0, 1.0],
       );
@@ -93,8 +93,8 @@ class LiquidGlassContainer extends StatelessWidget {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color(0xFFB8C5E6),
-          Color(0xFF6178A0),
+          Color(0xD9FFFFFF),
+          Color(0x9EEAF1FF),
         ],
         stops: [0.0, 1.0],
       );
@@ -303,74 +303,78 @@ class _LiquidSegmentedPillState extends State<LiquidSegmentedPill>
       padding: const EdgeInsets.all(4),
       child: SizedBox(
         height: widget.height,
-        child: Stack(
-          children: [
-            AnimatedBuilder(
-              animation: _animation,
-              builder: (context, child) {
-                final itemWidth = MediaQuery.of(context).size.width / widget.labels.length;
-                final targetLeft = widget.selectedIndex * itemWidth;
-                final currentLeft = _animation.value * targetLeft +
-                    (1 - _animation.value) * (widget.selectedIndex == 0 ? 0 : targetLeft);
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final itemWidth = constraints.maxWidth / widget.labels.length;
+            return Stack(
+              children: [
+                AnimatedBuilder(
+                  animation: _animation,
+                  builder: (context, child) {
+                    final targetLeft = widget.selectedIndex * itemWidth;
+                    final currentLeft = _animation.value * targetLeft +
+                        (1 - _animation.value) * (widget.selectedIndex == 0 ? 0 : targetLeft);
 
-                return Positioned(
-                  left: currentLeft,
-                  top: 4,
-                  bottom: 4,
-                  width: itemWidth,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(widget.borderRadius - 4),
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          indicatorColor.withOpacity(0.9),
-                          indicatorColor.withOpacity(0.6),
-                        ],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: indicatorColor.withOpacity(0.35),
-                          blurRadius: 16,
-                          offset: const Offset(0, 4),
-                          spreadRadius: -2,
+                    return Positioned(
+                      left: currentLeft,
+                      top: 0,
+                      bottom: 0,
+                      width: itemWidth,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(widget.borderRadius - 4),
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              indicatorColor.withOpacity(0.9),
+                              indicatorColor.withOpacity(0.6),
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: indicatorColor.withOpacity(0.35),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
+                              spreadRadius: -2,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-            Row(
-              children: List.generate(widget.labels.length, (index) {
-                final isSelected = index == widget.selectedIndex;
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => widget.onChanged(index),
-                    behavior: HitTestBehavior.opaque,
-                    child: Center(
-                      child: AnimatedDefaultTextStyle(
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeOutCubic,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color: isSelected
-                              ? (widget.isDark ? Colors.white : Colors.white)
-                              : (widget.isDark
-                                  ? LiquidColors.textSecondaryDark
-                                  : LiquidColors.textSecondaryLight),
-                          letterSpacing: 0.3,
-                        ),
-                        child: Text(widget.labels[index]),
                       ),
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ],
+                    );
+                  },
+                ),
+                Row(
+                  children: List.generate(widget.labels.length, (index) {
+                    final isSelected = index == widget.selectedIndex;
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () => widget.onChanged(index),
+                        behavior: HitTestBehavior.opaque,
+                        child: Center(
+                          child: AnimatedDefaultTextStyle(
+                            duration: const Duration(milliseconds: 200),
+                            curve: Curves.easeOutCubic,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                              color: isSelected
+                                  ? (widget.isDark ? Colors.white : Colors.white)
+                                  : (widget.isDark
+                                      ? LiquidColors.textSecondaryDark
+                                      : LiquidColors.textSecondaryLight),
+                              letterSpacing: 0.3,
+                            ),
+                            child: Text(widget.labels[index]),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -553,130 +557,146 @@ class LiquidProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textColor = isDark ? LiquidColors.textPrimaryDark : LiquidColors.textPrimaryLight;
     final secondaryColor = isDark ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight;
-    final jadeColor = isDark ? LiquidColors.electricJadeDark : LiquidColors.electricJadeLight;
 
     return LiquidGlassContainer(
       borderRadius: 20,
       blurSigma: 14,
       isDark: isDark,
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.zero,
       margin: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: isDark
-                    ? [
-                        const Color(0xFF1E2A4A).withOpacity(0.8),
-                        const Color(0xFF141C2E).withOpacity(0.6),
-                      ]
-                    : [
-                        Colors.white.withOpacity(0.7),
-                        Colors.white.withOpacity(0.35),
-                      ],
-              ),
-              border: Border.all(
-                color: Colors.white.withOpacity(isDark ? 0.12 : 0.35),
-                width: 0.8,
-              ),
-            ),
-            child: Icon(
-              isCatalog ? Icons.inventory_2_outlined : Icons.shopping_bag_outlined,
-              color: secondaryColor,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: isDark
+                          ? [
+                              const Color(0xFF1E2A4A).withOpacity(0.8),
+                              const Color(0xFF141C2E).withOpacity(0.6),
+                            ]
+                          : [
+                              Colors.white.withOpacity(0.7),
+                              Colors.white.withOpacity(0.35),
+                            ],
+                    ),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(isDark ? 0.12 : 0.35),
+                      width: 0.8,
+                    ),
+                  ),
+                  child: Icon(
+                    isCatalog ? Icons.inventory_2_outlined : Icons.shopping_bag_outlined,
+                    color: secondaryColor,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: TextStyle(
+                                color: textColor,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.1,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (gravaIeps)
+                            LiquidIepsBadge(text: 'IEPS 8%', isDark: isDark),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
                         style: TextStyle(
-                          color: textColor,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.1,
+                          color: secondaryColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    if (gravaIeps)
-                      LiquidIepsBadge(text: 'IEPS 8%', isDark: isDark),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: secondaryColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
+                    ],
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      price,
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                    if (isCatalog && onIncrement != null) ...[
+                      const SizedBox(height: 8),
+                      _QtyButton(
+                        icon: Icons.add,
+                        onPressed: onIncrement,
+                        isDark: isDark,
+                      ),
+                    ] else if (quantity != null && !isCatalog) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _QtyButton(
+                            icon: Icons.remove,
+                            onPressed: onDecrement,
+                            isDark: isDark,
+                          ),
+                          Container(
+                            width: 44,
+                            alignment: Alignment.center,
+                            child: Text(
+                              quantity!,
+                              style: TextStyle(
+                                color: textColor,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                fontFamily: 'monospace',
+                              ),
+                            ),
+                          ),
+                          _QtyButton(
+                            icon: Icons.add,
+                            onPressed: onIncrement,
+                            isDark: isDark,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                price,
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: 'monospace',
-                ),
-              ),
-              if (quantity != null && !isCatalog) ...[
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _QtyButton(
-                      icon: Icons.remove,
-                      onPressed: onDecrement,
-                      isDark: isDark,
-                    ),
-                    Container(
-                      width: 44,
-                      alignment: Alignment.center,
-                      child: Text(
-                        quantity!,
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          fontFamily: 'monospace',
-                        ),
-                      ),
-                    ),
-                    _QtyButton(
-                      icon: Icons.add,
-                      onPressed: onIncrement,
-                      isDark: isDark,
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
