@@ -4,7 +4,7 @@ import 'package:ota_update/ota_update.dart';
 
 class ActualizacionService {
   // Versión actual instalada en esta compilación
-  static const int versionCodigoActual = 1;
+  static const int versionCodigoActual = 2;
 
   static const String _urlFirebase =
       'https://vektor-pos-default-rtdb.firebaseio.com/actualizacion.json';
