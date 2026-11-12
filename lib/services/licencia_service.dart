@@ -174,6 +174,7 @@ class LicenciaService {
         final base = actual.isAfter(DateTime.now()) ? actual : DateTime.now();
         final nuevaFecha = base.add(const Duration(days: 30));
         await prefs.setString('licencia_vencimiento', nuevaFecha.toIso8601String());
+        await prefs.setBool('licencia_switch_activo', true);
         return true;
       }
     }

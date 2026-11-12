@@ -114,6 +114,7 @@ class _VentaScreenState extends State<VentaScreen> {
     }
 
     final idTerm = await LicenciaService.obtenerTerminalId();
+    await LicenciaService.sincronizarEnLinea();
     final activa = await LicenciaService.isLicenciaValida();
     final fechaVenc = await LicenciaService.obtenerFechaVencimiento();
 
@@ -132,6 +133,10 @@ class _VentaScreenState extends State<VentaScreen> {
       _licenciaActiva = activa;
       _fechaVencimiento = fechaVenc;
     });
+
+    if (!activa && mounted) {
+      _mostrarDialogoLicencia();
+    }
 
     _comprobarActualizacionDisponible();
   }
@@ -325,7 +330,10 @@ class _VentaScreenState extends State<VentaScreen> {
     );
   }
 
-  void _mostrarSelectorImpresora() {
+  Future<void> _mostrarSelectorImpresora() async {
+    final macActual = await PrinterService.obtenerImpresoraGuardada();
+    final dispositivos = await PrinterService.obtenerDispositivosVinculados();
+
     showDialog(
       context: context,
       builder: (context) => LiquidDialog(
@@ -342,12 +350,94 @@ class _VentaScreenState extends State<VentaScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            const Text('Selecciona una impresora térmica Bluetooth emparejada.'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cerrar'),
+            Text(
+              'MAC activa: ${macActual ?? 'Sin asignar'}',
+              style: TextStyle(
+                fontSize: 13,
+                color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
+                fontFamily: 'monospace',
+              ),
             ),
+            const SizedBox(height: 16),
+            if (dispositivos.isEmpty)
+              Text(
+                'No se detectaron impresoras Bluetooth vinculadas.\n(En modo Web no hay acceso a Bluetooth).',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
+                ),
+                textAlign: TextAlign.center,
+              )
+            else
+              SizedBox(
+                height: 220,
+                width: 340,
+                child: ListView.builder(
+                  itemCount: dispositivos.length,
+                  itemBuilder: (context, index) {
+                    final device = dispositivos[index];
+                    return LiquidGlassContainer(
+                      borderRadius: 12,
+                      blurSigma: 10,
+                      isDark: _modoNoche,
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(14),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () async {
+                          await PrinterService.guardarImpresora(device.macAdress);
+                          if (mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Impresora guardada: ${device.name}'),
+                                backgroundColor: LiquidColors.electricJadeLight,
+                              ),
+                            );
+                          }
+                        },
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.print,
+                              color: _modoNoche ? LiquidColors.luminousBlueDark : LiquidColors.luminousBlueLight,
+                              size: 28,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    device.name ?? 'Sin nombre',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                      color: _modoNoche ? LiquidColors.textPrimaryDark : LiquidColors.textPrimaryLight,
+                                    ),
+                                  ),
+                                  Text(
+                                    device.macAdress ?? '',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontFamily: 'monospace',
+                                      color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              Icons.chevron_right,
+                              color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
           ],
         ),
       ),
@@ -356,6 +446,8 @@ class _VentaScreenState extends State<VentaScreen> {
 
 
   void _mostrarDialogoLicencia() {
+    final codigoCtrl = TextEditingController();
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -418,6 +510,80 @@ class _VentaScreenState extends State<VentaScreen> {
                   color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
                   height: 1.4,
                 ),
+              ),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
+              Text(
+                'Pago mensual:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: _modoNoche ? LiquidColors.textPrimaryDark : LiquidColors.textPrimaryLight,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${LicenciaService.banco} • CLABE: ${LicenciaService.clabe} (${LicenciaService.costoMensual})',
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 12,
+                        color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.copy, size: 20, color: _modoNoche ? LiquidColors.luminousBlueDark : LiquidColors.luminousBlueLight),
+                    onPressed: () async {
+                      await LicenciaService.copiarClabe();
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('CLABE copiada al portapapeles')),
+                      );
+                    },
+                    tooltip: 'Copiar CLABE',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _LiquidTextField(
+                controller: codigoCtrl,
+                label: 'Clave mensual (6 dígitos)',
+                keyboardType: TextInputType.number,
+                isDark: _modoNoche,
+              ),
+              const SizedBox(height: 12),
+              LiquidPillButton(
+                label: 'Activar Clave',
+                isPrimary: true,
+                isDark: _modoNoche,
+                onPressed: () async {
+                  final ok = await LicenciaService.activarLicencia(codigoCtrl.text);
+                  if (!context.mounted) return;
+                  if (ok) {
+                    setState(() {
+                      _licenciaActiva = true;
+                    });
+                    _fechaVencimiento = await LicenciaService.obtenerFechaVencimiento();
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: LiquidColors.electricJadeLight,
+                        content: const Text('¡Licencia activada correctamente!'),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: LiquidColors.coralLight,
+                        content: const Text('Clave inválida o ya utilizada'),
+                      ),
+                    );
+                  }
+                },
               ),
               const SizedBox(height: 16),
               Row(
@@ -722,6 +888,7 @@ class _VentaScreenState extends State<VentaScreen> {
                         _nombreCliente = nombreCtrl.text;
                         _clienteAcd = acdCtrl.text;
                       });
+                      _guardarConfiguracion();
                       Navigator.pop(context);
                     },
                   ),
@@ -742,6 +909,14 @@ class _VentaScreenState extends State<VentaScreen> {
 
 
   void _mostrarDialogoCobro() {
+    if (!_licenciaActiva) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Licencia suspendida o vencida. Actívala para cobrar.')),
+      );
+      _mostrarDialogoLicencia();
+      return;
+    }
+
     if (_carrito.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('El carrito está vacío')),
@@ -1296,60 +1471,71 @@ class _VentaScreenState extends State<VentaScreen> {
                       c.acd.toLowerCase().contains(filtro)
                     ).toList();
                     final cliente = filtered[index];
-                    return LiquidGlassContainer(
-                      borderRadius: 16,
-                      blurSigma: 12,
-                      isDark: _modoNoche,
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 22,
-                            backgroundColor: (_modoNoche ? LiquidColors.luminousBlueDark : LiquidColors.luminousBlueLight).withOpacity(0.2),
-                            child: Text(
-                              cliente.nombre.isNotEmpty ? cliente.nombre[0].toUpperCase() : '?',
-                              style: TextStyle(
-                                color: _modoNoche ? LiquidColors.luminousBlueDark : LiquidColors.luminousBlueLight,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        setState(() {
+                          _nombreCliente = cliente.nombre;
+                          _clienteAcd = cliente.acd;
+                        });
+                        _guardarConfiguracion();
+                        Navigator.pop(context);
+                      },
+                      child: LiquidGlassContainer(
+                        borderRadius: 16,
+                        blurSigma: 12,
+                        isDark: _modoNoche,
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 22,
+                              backgroundColor: (_modoNoche ? LiquidColors.luminousBlueDark : LiquidColors.luminousBlueLight).withOpacity(0.2),
+                              child: Text(
+                                cliente.nombre.isNotEmpty ? cliente.nombre[0].toUpperCase() : '?',
+                                style: TextStyle(
+                                  color: _modoNoche ? LiquidColors.luminousBlueDark : LiquidColors.luminousBlueLight,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  cliente.nombre,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 15,
-                                    color: _modoNoche ? LiquidColors.textPrimaryDark : LiquidColors.textPrimaryLight,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    cliente.nombre,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                      color: _modoNoche ? LiquidColors.textPrimaryDark : LiquidColors.textPrimaryLight,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  'ACD: ${cliente.acd}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
+                                  Text(
+                                    'ACD: ${cliente.acd}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          IconButton(
-                            icon: Icon(
-                              Icons.edit,
-                              color: _modoNoche ? LiquidColors.luminousBlueDark : LiquidColors.luminousBlueLight,
-                              size: 20,
+                            IconButton(
+                              icon: Icon(
+                                Icons.edit,
+                                color: _modoNoche ? LiquidColors.luminousBlueDark : LiquidColors.luminousBlueLight,
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                Navigator.pop(context);
+                                _editarCliente(cliente);
+                              },
                             ),
-                            onPressed: () {
-                              Navigator.pop(context);
-                              _editarCliente(cliente);
-                            },
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -1536,22 +1722,7 @@ class _VentaScreenState extends State<VentaScreen> {
   void _comprobarActualizacionDisponible() async {
     try {
       final info = await ActualizacionService.verificarActualizacion();
-      if (info == null) return;
-      final versionActual = '2.1.0';
-      final partesActual = versionActual.split('.').map(int.parse).toList();
-      final partesNueva = (info['version_nombre'] ?? '2.1.0').split('.').map(int.parse).toList();
-
-      bool hayNueva = false;
-      for (int i = 0; i < 3; i++) {
-        if (partesNueva[i] > partesActual[i]) {
-          hayNueva = true;
-          break;
-        } else if (partesNueva[i] < partesActual[i]) {
-          break;
-        }
-      }
-
-      if (hayNueva && mounted) {
+      if (info != null && mounted) {
         _mostrarDialogoActualizacion(info);
       }
     } catch (_) {}
