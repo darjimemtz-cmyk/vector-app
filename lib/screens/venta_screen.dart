@@ -920,11 +920,9 @@ class _VentaScreenState extends State<VentaScreen> {
                               vendedor: _vendedor,
                               sucursal: _sucursal,
                               ruta: _ruta,
-                              items: _carrito,
-                              subtotal: subtotalVenta,
-                              ieps: iepsVenta,
+                              articulos: _carrito,
                               total: totalVenta,
-                              pago: montoEfectivo,
+                              efectivo: montoEfectivo,
                               cambio: cambio,
                               metodoPago: metodoPago,
                               mensajePie: _mensajePie,
@@ -948,7 +946,7 @@ class _VentaScreenState extends State<VentaScreen> {
                             }
                             _guardarCatalogo();
 
-                            PrinterService().imprimirTicket(ticketZpl);
+                            await PrinterService.imprimirTicketZPL(ticketZpl);
 
                             setState(() {
                               _carrito.clear();
@@ -1530,6 +1528,7 @@ class _VentaScreenState extends State<VentaScreen> {
   void _comprobarActualizacionDisponible() async {
     try {
       final info = await ActualizacionService.verificarActualizacion();
+      if (info == null) return;
       final versionActual = '2.1.0';
       final partesActual = versionActual.split('.').map(int.parse).toList();
       final partesNueva = (info['version_nombre'] ?? '2.1.0').split('.').map(int.parse).toList();
@@ -2369,13 +2368,14 @@ class _VentaScreenState extends State<VentaScreen> {
       itemCount: _carrito.length,
       itemBuilder: (context, index) {
         final item = _carrito[index];
-        return LiquidCartTile(
+        return LiquidProductCard(
           title: item.descripcion,
           subtitle: 'P.U.: ${formatMoneda.format(item.precioUnitario)}',
           price: formatMoneda.format(item.importe + item.montoIeps),
           quantity: '${item.cantidad}',
           gravaIeps: item.gravaIeps,
           isDark: _modoNoche,
+          isCatalog: false,
           onIncrement: () {
             if (item.cantidad < item.stock) {
               setState(() => item.cantidad++);
