@@ -1689,7 +1689,8 @@ class _VentaScreenState extends State<VentaScreen> {
   }
 
 
-  Widget _buildVistaProductos() {
+  Widget _buildVistaProductos({double bottomInset = 0}) {
+    final effectiveBottomInset = bottomInset > 0 ? bottomInset : MediaQuery.viewPaddingOf(context).bottom;
     final catalogoFiltrado = _catalogo.where((item) {
       final busqueda = _filtroBusqueda.toLowerCase();
       return item.descripcion.toLowerCase().contains(busqueda);
@@ -1730,7 +1731,7 @@ class _VentaScreenState extends State<VentaScreen> {
             },
           ),
         ),
-        const SizedBox(height: 100),
+        SizedBox(height: effectiveBottomInset + 16),
       ],
     );
   }
@@ -1904,7 +1905,8 @@ class _VentaScreenState extends State<VentaScreen> {
     );
   }
 
-  Widget _buildVistaVenta() {
+  Widget _buildVistaVenta({double bottomInset = 0}) {
+    final effectiveBottomInset = bottomInset > 0 ? bottomInset : MediaQuery.viewPaddingOf(context).bottom;
     return Column(
       children: [
         Padding(
@@ -2114,7 +2116,7 @@ class _VentaScreenState extends State<VentaScreen> {
 
         if (_carrito.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            padding: EdgeInsets.fromLTRB(16, 0, 16, effectiveBottomInset + 16),
             child: Column(
               children: [
                 LiquidGlassContainer(
@@ -2183,6 +2185,289 @@ class _VentaScreenState extends State<VentaScreen> {
     );
   }
 
+  Widget _buildVistaVentaResponsive(bool esTablet, double maxWidth) {
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+
+    if (esTablet) {
+      return _buildVistaVentaTablet(bottomInset);
+    }
+
+    return _buildVistaVenta();
+  }
+
+  Widget _buildVistaVentaTablet(double bottomInset) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 6,
+          child: Column(
+            children: [
+              LiquidGlassContainer(
+                margin: const EdgeInsets.fromLTRB(16, 16, 8, 8),
+                padding: const EdgeInsets.all(16),
+                borderRadius: 20,
+                blurSigma: 16,
+                isDark: _modoNoche,
+                child: _LiquidTextField(
+                  controller: TextEditingController(text: _filtroBusqueda),
+                  label: 'Buscar productos...',
+                  prefixIcon: Icons.search,
+                  isDark: _modoNoche,
+                  onChanged: (val) => setState(() => _filtroBusqueda = val),
+                ),
+              ),
+              Expanded(child: _buildCatalogoLista()),
+              SizedBox(height: bottomInset + 16),
+            ],
+          ),
+        ),
+        Expanded(
+          flex: 4,
+          child: Column(
+            children: [
+              _buildPanelCliente(),
+              Expanded(child: _buildPanelCarrito()),
+              if (_carrito.isNotEmpty) _buildPanelCobro(bottomInset) else SizedBox(height: bottomInset + 16),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+
+  Widget _buildCatalogoLista() {
+    final catalogoFiltrado = _catalogo.where((item) {
+      final busqueda = _filtroBusqueda.toLowerCase();
+      return item.descripcion.toLowerCase().contains(busqueda);
+    }).toList();
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 0, 8, 16),
+      itemCount: catalogoFiltrado.length,
+      itemBuilder: (context, index) {
+        final item = catalogoFiltrado[index];
+        return LiquidProductCard(
+          title: '',
+          subtitle: 'Stock: ${item.stock} \u2022 ${item.gravaIeps ? 'IEPS' : 'Exento'}',
+          price: formatMoneda.format(item.precioUnitario),
+          gravaIeps: item.gravaIeps,
+          isDark: _modoNoche,
+          isCatalog: true,
+          onTap: () => _agregarAlCarrito(item),
+          onIncrement: () => _agregarAlCarrito(item),
+        );
+      },
+    );
+  }
+
+  Widget _buildPanelCliente() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 16, 16, 8),
+      child: LiquidGlassContainer(
+        borderRadius: 24,
+        blurSigma: 20,
+        isDark: _modoNoche,
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          children: [
+            InkWell(
+              onTap: _cambiarCliente,
+              borderRadius: BorderRadius.circular(16),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: (_modoNoche ? LiquidColors.luminousBlueDark : LiquidColors.luminousBlueLight).withOpacity(0.15),
+                      child: Icon(
+                        Icons.store,
+                        color: _modoNoche ? LiquidColors.luminousBlueDark : LiquidColors.luminousBlueLight,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _nombreCliente,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: _modoNoche ? LiquidColors.textPrimaryDark : LiquidColors.textPrimaryLight,
+                              letterSpacing: 0.1,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            'ACD: $_clienteAcd \u2022 Ruta $_ruta',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPanelCarrito() {
+    if (_carrito.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.shopping_cart_outlined,
+              size: 64,
+              color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Carrito vacío',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Agrega productos desde el catálogo',
+              style: TextStyle(
+                fontSize: 14,
+                color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: _carrito.length,
+      itemBuilder: (context, index) {
+        final item = _carrito[index];
+        return LiquidCartTile(
+          title: item.descripcion,
+          subtitle: 'P.U.: ${formatMoneda.format(item.precioUnitario)}',
+          price: formatMoneda.format(item.importe + item.montoIeps),
+          quantity: '${item.cantidad}',
+          gravaIeps: item.gravaIeps,
+          isDark: _modoNoche,
+          onIncrement: () {
+            if (item.cantidad < item.stock) {
+              setState(() => item.cantidad++);
+            }
+          },
+          onDecrement: () {
+            setState(() {
+              if (item.cantidad > 1) {
+                item.cantidad--;
+              } else {
+                _carrito.removeAt(index);
+              }
+            });
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildPanelCobro(double bottomInset) {
+    final subtotal = _carrito.fold(0.0, (acc, i) => acc + i.importe);
+    final ieps = _carrito.fold(0.0, (acc, i) => acc + i.montoIeps);
+    final total = subtotal + ieps;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 0, 16, bottomInset + 16),
+      child: Column(
+        children: [
+          LiquidGlassContainer(
+            borderRadius: 20,
+            blurSigma: 16,
+            isDark: _modoNoche,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Subtotal: ${formatMoneda.format(subtotal)}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
+                  ),
+                ),
+                Text(
+                  'IEPS (8%): ${formatMoneda.format(ieps)}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: LiquidColors.electricJadeLight,
+                  ),
+                ),
+                Text(
+                  'TOTAL: ${formatMoneda.format(total)}',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: _modoNoche ? LiquidColors.luminousBlueDark : LiquidColors.luminousBlueLight,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: LiquidPillButton(
+                  label: 'Limpiar',
+                  isPrimary: false,
+                  isDark: _modoNoche,
+                  icon: Icons.delete_sweep,
+                  onPressed: _limpiarVenta,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: LiquidPillButton(
+                  label: 'Hecho (Cobrar)',
+                  isPrimary: true,
+                  isDark: _modoNoche,
+                  icon: Icons.point_of_sale,
+                  onPressed: _mostrarDialogoCobro,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -2215,7 +2500,12 @@ class _VentaScreenState extends State<VentaScreen> {
                     ? _buildVistaProductos()
                     : _tabSeleccionada == 2
                         ? _buildVistaInforme()
-                        : _buildVistaVenta(),
+                        : LayoutBuilder(
+                            builder: (context, constraints) {
+                              final esTablet = constraints.maxWidth >= 600;
+                              return _buildVistaVentaResponsive(esTablet, constraints.maxWidth);
+                            },
+                          ),
               ),
             ],
           ),
