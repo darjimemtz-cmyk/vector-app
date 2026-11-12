@@ -903,7 +903,7 @@ class _VentaScreenState extends State<VentaScreen> {
                           label: 'Confirmar Cobro',
                           isPrimary: true,
                           isDark: _modoNoche,
-                          onPressed: () {
+                          onPressed: () async {
                             final double montoEfectivo = metodoPago == 'EFECTIVO'
                                 ? (double.tryParse(pagoController.text) ?? totalVenta)
                                 : totalVenta;
