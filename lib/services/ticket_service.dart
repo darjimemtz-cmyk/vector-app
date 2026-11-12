@@ -19,7 +19,7 @@ class TicketService {
     String clienteAcd = '23009618',
     String vendedor = '371293 MARTINEZ MARTINEZ',
     String sucursal = '23 SAN LUIS POTOSI',
-    String ruta = '30',
+    String ruta = '',
     String metodoPago = 'EFECTIVO',
     required List<ItemVenta> articulos,
     double total = 0.0,
@@ -56,7 +56,7 @@ class TicketService {
 
     // Algoritmo oficial Folio Ventas de Bokados: V + Sucursal(4) + Ruta(4) + Folio(6)
     final numSucursal = RegExp(r'\d+').firstMatch(sucursal)?.group(0) ?? '23';
-    final numRuta = RegExp(r'\d+').firstMatch(ruta)?.group(0) ?? '30';
+    final numRuta = RegExp(r'\d+').firstMatch(ruta)?.group(0) ?? '00';
     final folioVentas = 'V${numSucursal.padLeft(4, '0')}${numRuta.padLeft(4, '0')}${folio.padLeft(6, '0')}';
 
     // Agrupación automática por Precio Unitario para la Tabla de Liquidación

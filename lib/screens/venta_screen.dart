@@ -52,7 +52,7 @@ class _VentaScreenState extends State<VentaScreen> {
   String _telefono = '81222300';
   String _vendedor = '';
   String _sucursal = '23 SAN LUIS POTOSI';
-  String _ruta = '30';
+  String _ruta = '';
   String _nombreCliente = '9618 LA GUERA II';
   String _clienteAcd = '23009618';
   String _mensajePie = '¡GRACIAS POR SU COMPRA!';
@@ -743,62 +743,111 @@ class _VentaScreenState extends State<VentaScreen> {
         isDark: _modoNoche,
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Configuración de Ruta y Empresa',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: _modoNoche ? LiquidColors.textPrimaryDark : LiquidColors.textPrimaryLight,
-              ),
+            Row(
+              children: [
+                Icon(Icons.settings, color: LiquidColors.luminousBlueLight, size: 24),
+                const SizedBox(width: 8),
+                Text(
+                  'Configuración de Ruta y Empresa',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: _modoNoche ? LiquidColors.textPrimaryDark : LiquidColors.textPrimaryLight,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
+            // DATOS FISCALES
+            Text(
+              'DATOS FISCALES',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+                color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
+              ),
+            ),
+            const SizedBox(height: 8),
             _LiquidTextField(
               controller: nombreCtrl,
               label: 'Razón Social / Empresa',
               isDark: _modoNoche,
             ),
-            const SizedBox(height: 12),
-            _LiquidTextField(
-              controller: rfcCtrl,
-              label: 'R.F.C.',
-              isDark: _modoNoche,
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: _LiquidTextField(
+                    controller: rfcCtrl,
+                    label: 'R.F.C.',
+                    isDark: _modoNoche,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _LiquidTextField(
+                    controller: telCtrl,
+                    label: 'Teléfono Empresa',
+                    isDark: _modoNoche,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             _LiquidTextField(
               controller: direccionCtrl,
               label: 'Domicilio Fiscal',
               maxLines: 2,
               isDark: _modoNoche,
             ),
-            const SizedBox(height: 12),
-            _LiquidTextField(
-              controller: telCtrl,
-              label: 'Teléfono Empresa',
-              isDark: _modoNoche,
-            ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
             const Divider(),
-            const SizedBox(height: 12),
-            _LiquidTextField(
-              controller: rutaCtrl,
-              label: 'Número de Ruta',
-              isDark: _modoNoche,
+            const SizedBox(height: 14),
+            // OPERACIÓN Y RUTA
+            Text(
+              'OPERACIÓN Y RUTA',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+                color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
+              ),
             ),
-            const SizedBox(height: 12),
-            _LiquidTextField(
-              controller: sucursalCtrl,
-              label: 'Sucursal',
-              isDark: _modoNoche,
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: _LiquidTextField(
+                    controller: rutaCtrl,
+                    label: 'Ruta',
+                    hint: 'Ej. 30',
+                    keyboardType: TextInputType.number,
+                    isDark: _modoNoche,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 3,
+                  child: _LiquidTextField(
+                    controller: sucursalCtrl,
+                    label: 'Sucursal',
+                    isDark: _modoNoche,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             _LiquidTextField(
               controller: vendedorCtrl,
               label: 'Vendedor',
               hint: 'Ej. 371293 NOMBRE APELLIDO',
               isDark: _modoNoche,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             Row(
               children: [
                 Expanded(
@@ -863,13 +912,13 @@ class _VentaScreenState extends State<VentaScreen> {
               label: 'Nombre del Cliente',
               isDark: _modoNoche,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             _LiquidTextField(
               controller: acdCtrl,
               label: 'Código ACD',
               isDark: _modoNoche,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             Row(
               children: [
                 Expanded(
@@ -1181,7 +1230,7 @@ class _VentaScreenState extends State<VentaScreen> {
                 label: 'Descripción / Nombre',
                 isDark: _modoNoche,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _LiquidTextField(
                 controller: precioController,
                 label: 'Precio P.U. (Sin IEPS)',
@@ -1189,7 +1238,7 @@ class _VentaScreenState extends State<VentaScreen> {
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 isDark: _modoNoche,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _LiquidTextField(
                 controller: stockController,
                 label: 'Existencias (Stock)',
@@ -1237,7 +1286,7 @@ class _VentaScreenState extends State<VentaScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               Row(
                 children: [
                   Expanded(
@@ -1314,7 +1363,7 @@ class _VentaScreenState extends State<VentaScreen> {
                 label: 'Descripción / Nombre',
                 isDark: _modoNoche,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _LiquidTextField(
                 controller: precioController,
                 label: 'Precio P.U. (Sin IEPS)',
@@ -1322,7 +1371,7 @@ class _VentaScreenState extends State<VentaScreen> {
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 isDark: _modoNoche,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _LiquidTextField(
                 controller: stockController,
                 label: 'Existencias (Stock)',
@@ -1370,7 +1419,7 @@ class _VentaScreenState extends State<VentaScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               Row(
                 children: [
                   Expanded(
@@ -1602,13 +1651,13 @@ class _VentaScreenState extends State<VentaScreen> {
               label: 'Nombre del Cliente',
               isDark: _modoNoche,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             _LiquidTextField(
               controller: acdCtrl,
               label: 'Código ACD',
               isDark: _modoNoche,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             Row(
               children: [
                 Expanded(
@@ -1673,13 +1722,13 @@ class _VentaScreenState extends State<VentaScreen> {
               label: 'Nombre del Cliente',
               isDark: _modoNoche,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             _LiquidTextField(
               controller: acdCtrl,
               label: 'Código ACD',
               isDark: _modoNoche,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             Row(
               children: [
                 Expanded(
@@ -2132,7 +2181,7 @@ class _VentaScreenState extends State<VentaScreen> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                'ACD: $_clienteAcd • Ruta $_ruta',
+                                'ACD: $_clienteAcd • ${_ruta.trim().isEmpty ? 'Sin ruta' : 'Ruta ${_ruta.trim()}'}',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
@@ -2486,7 +2535,7 @@ class _VentaScreenState extends State<VentaScreen> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            'ACD: $_clienteAcd \u2022 Ruta $_ruta',
+                            'ACD: $_clienteAcd \u2022 ${_ruta.trim().isEmpty ? 'Sin ruta' : 'Ruta ${_ruta.trim()}'}',
                             style: TextStyle(
                               fontSize: 12,
                               color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
@@ -2896,7 +2945,7 @@ class _LiquidTextField extends StatelessWidget {
       borderRadius: 14,
       blurSigma: 12,
       isDark: isDark,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
@@ -2921,7 +2970,7 @@ class _LiquidTextField extends StatelessWidget {
           ),
           border: InputBorder.none,
           isDense: true,
-          contentPadding: EdgeInsets.zero,
+          contentPadding: const EdgeInsets.symmetric(vertical: 4),
         ),
       ),
     );

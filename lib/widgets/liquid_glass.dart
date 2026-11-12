@@ -818,7 +818,7 @@ class LiquidDialog extends StatelessWidget {
         blurSigma: 24,
         isDark: isDark,
         padding: const EdgeInsets.all(24),
-        child: child,
+        child: SingleChildScrollView(child: child),
       ),
     );
   }
