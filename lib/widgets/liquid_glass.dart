@@ -264,15 +264,17 @@ class _LiquidSegmentedPillState extends State<LiquidSegmentedPill>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
+  late int _previousIndex;
 
   @override
   void initState() {
     super.initState();
+    _previousIndex = widget.selectedIndex;
     _controller = AnimationController(
       duration: const Duration(milliseconds: 280),
       vsync: this,
     );
-    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
+    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOutBack);
     _controller.value = 1.0;
   }
 
@@ -280,6 +282,7 @@ class _LiquidSegmentedPillState extends State<LiquidSegmentedPill>
   void didUpdateWidget(covariant LiquidSegmentedPill oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.selectedIndex != widget.selectedIndex) {
+      _previousIndex = oldWidget.selectedIndex;
       _controller.forward(from: 0.0);
     }
   }
@@ -311,9 +314,9 @@ class _LiquidSegmentedPillState extends State<LiquidSegmentedPill>
                 AnimatedBuilder(
                   animation: _animation,
                   builder: (context, child) {
-                    final targetLeft = widget.selectedIndex * itemWidth;
-                    final currentLeft = _animation.value * targetLeft +
-                        (1 - _animation.value) * (widget.selectedIndex == 0 ? 0 : targetLeft);
+                    final itemWidth = constraints.maxWidth / widget.labels.length;
+                    final currentLeft = (_previousIndex * itemWidth) +
+                        ((widget.selectedIndex - _previousIndex) * itemWidth * _animation.value);
 
                     return Positioned(
                       left: currentLeft,
@@ -381,6 +384,41 @@ class _LiquidSegmentedPillState extends State<LiquidSegmentedPill>
   }
 }
 
+// Widget privado para rebote elástico al presionar (evita conflictos con InkWell)
+class _ElasticPress extends StatefulWidget {
+  final Widget child;
+
+  const _ElasticPress({required this.child});
+
+  @override
+  State<_ElasticPress> createState() => _ElasticPressState();
+}
+
+class _ElasticPressState extends State<_ElasticPress> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (mounted && _pressed != value) {
+      setState(() => _pressed = value);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      onPointerDown: (_) => _setPressed(true),
+      onPointerUp: (_) => _setPressed(false),
+      onPointerCancel: (_) => _setPressed(false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.96 : 1.0,
+        duration: const Duration(milliseconds: 110),
+        curve: Curves.easeOutCubic,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
 class LiquidPillButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -409,7 +447,7 @@ class LiquidPillButton extends StatelessWidget {
     final luminousBlue = isDark ? LiquidColors.luminousBlueDark : LiquidColors.luminousBlueLight;
     final electricJade = isDark ? LiquidColors.electricJadeDark : LiquidColors.electricJadeLight;
 
-    return SizedBox(
+    final button = SizedBox(
       height: height,
       child: LiquidGlassContainer(
         borderRadius: borderRadius,
@@ -482,6 +520,11 @@ class LiquidPillButton extends StatelessWidget {
         ),
       ),
     );
+
+    if (onPressed != null) {
+      return _ElasticPress(child: button);
+    }
+    return button;
   }
 }
 
@@ -558,7 +601,7 @@ class LiquidProductCard extends StatelessWidget {
     final textColor = isDark ? LiquidColors.textPrimaryDark : LiquidColors.textPrimaryLight;
     final secondaryColor = isDark ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight;
 
-    return LiquidGlassContainer(
+    final card = LiquidGlassContainer(
       borderRadius: 20,
       blurSigma: 14,
       isDark: isDark,
@@ -699,6 +742,11 @@ class LiquidProductCard extends StatelessWidget {
         ),
       ),
     );
+
+    if (onTap != null || isCatalog) {
+      return _ElasticPress(child: card);
+    }
+    return card;
   }
 }
 

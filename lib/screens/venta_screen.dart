@@ -2747,16 +2747,34 @@ class _VentaScreenState extends State<VentaScreen> {
               ),
               const SizedBox(height: 12),
               Expanded(
-                child: _tabSeleccionada == 0
-                    ? _buildVistaProductos()
-                    : _tabSeleccionada == 2
-                        ? _buildVistaInforme()
-                        : LayoutBuilder(
-                            builder: (context, constraints) {
-                              final esTablet = constraints.maxWidth >= 600;
-                              return _buildVistaVentaResponsive(esTablet, constraints.maxWidth);
-                            },
-                          ),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 240),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  transitionBuilder: (child, animation) => FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.03, 0),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  ),
+                  child: KeyedSubtree(
+                    key: ValueKey<int>(_tabSeleccionada),
+                    child: _tabSeleccionada == 0
+                        ? _buildVistaProductos()
+                        : _tabSeleccionada == 2
+                            ? _buildVistaInforme()
+                            : LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final esTablet = constraints.maxWidth >= 600;
+                                  return _buildVistaVentaResponsive(esTablet, constraints.maxWidth);
+                                },
+                              ),
+                  ),
+                ),
               ),
             ],
           ),
