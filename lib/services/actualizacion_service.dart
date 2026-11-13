@@ -3,8 +3,17 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
-import 'package:open_file/open_file.dart';
-import 'package:ota_update/ota_update.dart';
+import 'package:open_filex/open_filex.dart';
+
+/// Enum local compatible con la UI original (sin depender de ota_update nativo)
+enum OtaStatus { DOWNLOADING, INSTALLING, INSTALLATION_DONE, DOWNLOAD_ERROR, INTERNAL_ERROR, PERMISSION_NOT_GRANTED_ERROR }
+
+/// Clase local compatible con la UI original
+class OtaEvent {
+  final OtaStatus status;
+  final String? value;
+  OtaEvent(this.status, [this.value]);
+}
 
 class ActualizacionService {
   // Versión actual instalada en esta compilación
@@ -74,8 +83,13 @@ class ActualizacionService {
           return;
         }
 
-        // Guardar en directorio temporal
-        final tempDir = await getTemporaryDirectory();
+        // Guardar en almacenamiento externo (visible para PackageInstaller)
+        final tempDir = await getExternalStorageDirectory();
+        if (tempDir == null) {
+          controller.addError(Exception('No se pudo acceder al almacenamiento externo'));
+          await controller.close();
+          return;
+        }
         final apkFile = File('${tempDir.path}/vektor_update.apk');
 
         final sink = apkFile.openWrite();
@@ -111,19 +125,12 @@ class ActualizacionService {
         controller.add(OtaEvent(OtaStatus.INSTALLING, '100'));
 
         // Abrir instalador con MIME type explícito
-        final result = await OpenFile.open(
+        final result = await OpenFilex.open(
           apkFile.path,
           type: 'application/vnd.android.package-archive',
         );
-
-        // Validar resultado de apertura
         if (result.type != ResultType.done) {
-          final errorMsg = result.message.isNotEmpty
-              ? result.message
-              : 'Error desconocido al abrir el instalador';
-          controller.addError(Exception('No se pudo abrir el instalador: $errorMsg'));
-          await controller.close();
-          return;
+          throw Exception('No se pudo abrir el instalador (${result.type.name}):${result.message}');
         }
 
         // Éxito

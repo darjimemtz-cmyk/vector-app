@@ -13,7 +13,6 @@ import '../services/ticket_service.dart';
 import '../services/licencia_service.dart';
 import '../services/printer_service.dart';
 import '../services/actualizacion_service.dart';
-import 'package:ota_update/ota_update.dart';
 import '../widgets/liquid_glass.dart';
 
 class VentaScreen extends StatefulWidget {
@@ -1892,10 +1891,10 @@ class _VentaScreenState extends State<VentaScreen> {
                                 }
                               });
                             },
-                            onError: (_) {
+                            onError: (error) {
                               setModalState(() {
                                 descargando = false;
-                                estadoTexto = 'Fallo de conexión al descargar.';
+                                estadoTexto = 'Error: ${error.toString()}';
                               });
                             },
                           );
