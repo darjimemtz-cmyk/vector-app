@@ -506,17 +506,6 @@ class _VentaScreenState extends State<VentaScreen> {
               const Divider(),
               const SizedBox(height: 8),
               Text(
-                'La app verifica la licencia consultando el panel de control Bokados. Si el switch está en ON, la app funciona. Si está OFF o vencida, se bloquea la venta.',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 8),
-              Text(
                 'Pago mensual:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -556,6 +545,69 @@ class _VentaScreenState extends State<VentaScreen> {
                 label: 'Clave mensual (6 dígitos)',
                 keyboardType: TextInputType.number,
                 isDark: _modoNoche,
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 52,
+                child: LiquidGlassContainer(
+                  borderRadius: 28,
+                  blurSigma: 14,
+                  isDark: _modoNoche,
+                  padding: EdgeInsets.zero,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () async {
+                        final String mensaje = 'Hola, acabo de pagar mi mensualidad de Vektor POS. Mi Terminal ID es: $_terminalId. Anexo el comprobante.';
+                        final Uri url = Uri.parse('https://wa.me/524447043221?text=${Uri.encodeComponent(mensaje)}');
+                        if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('No se pudo abrir WhatsApp')),
+                          );
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(28),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(28),
+                          gradient: const LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            colors: [Color(0xFF25D366), Color(0xFF128C7E)],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF25D366).withOpacity(0.35),
+                              blurRadius: 18,
+                              offset: const Offset(0, 6),
+                              spreadRadius: -3,
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Center(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.chat, size: 20, color: Colors.white),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Ya pagué: Enviar comprobante',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 12),
               LiquidPillButton(
