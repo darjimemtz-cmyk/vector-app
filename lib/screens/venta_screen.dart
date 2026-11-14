@@ -2165,26 +2165,86 @@ class _VentaScreenState extends State<VentaScreen> {
             isPrimary: false,
             isDark: _modoNoche,
             icon: Icons.print,
-            onPressed: () async {
+            onPressed: () {
               if (_historialVentas.isEmpty) return;
-              final totalV = _historialVentas.fold(0.0, (acc, v) => acc + (v['total'] as double));
-              final totalEfectivo = _historialVentas.where((v) => v['metodoPago'] == 'EFECTIVO').fold(0.0, (acc, v) => acc + (v['total'] as double));
-              final totalTarjeta = _historialVentas.where((v) => v['metodoPago'] == 'TARJETA').fold(0.0, (acc, v) => acc + (v['total'] as double));
-              final totalTransf = _historialVentas.where((v) => v['metodoPago'] == 'TRANSFERENCIA').fold(0.0, (acc, v) => acc + (v['total'] as double));
-              
-              final zpl = TicketService().generarCorteZPL(
-                nombreNegocio: _nombreNegocio,
-                direccionTelefono: '$_telefono\n$_datosNegocio',
-                totalVenta: totalV,
-                totalEfectivo: totalEfectivo,
-                totalTarjeta: totalTarjeta,
-                totalTransf: totalTransf,
-                totalTickets: _historialVentas.length,
+
+              showDialog(
+                context: context,
+                builder: (context) => LiquidDialog(
+                  isDark: _modoNoche,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Confirmar Corte de Caja',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: _modoNoche ? LiquidColors.textPrimaryDark : LiquidColors.textPrimaryLight,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        '¿Deseas imprimir el corte de caja? Esto borrará el historial de ventas actual para iniciar un nuevo turno desde cero.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: _modoNoche ? LiquidColors.textPrimaryDark : LiquidColors.textPrimaryLight,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: LiquidPillButton(
+                              label: 'Cancelar',
+                              isPrimary: false,
+                              isDark: _modoNoche,
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: LiquidPillButton(
+                              label: 'Confirmar',
+                              isPrimary: true,
+                              isDark: _modoNoche,
+                              onPressed: () async {
+                                final totalV = _historialVentas.fold(0.0, (acc, v) => acc + (v['total'] as double));
+                                final totalEfectivo = _historialVentas.where((v) => v['metodoPago'] == 'EFECTIVO').fold(0.0, (acc, v) => acc + (v['total'] as double));
+                                final totalTarjeta = _historialVentas.where((v) => v['metodoPago'] == 'TARJETA').fold(0.0, (acc, v) => acc + (v['total'] as double));
+                                final totalTransf = _historialVentas.where((v) => v['metodoPago'] == 'TRANSFERENCIA').fold(0.0, (acc, v) => acc + (v['total'] as double));
+                                
+                                final zpl = TicketService().generarCorteZPL(
+                                  nombreNegocio: _nombreNegocio,
+                                  direccionTelefono: '$_telefono\n$_datosNegocio',
+                                  totalVenta: totalV,
+                                  totalEfectivo: totalEfectivo,
+                                  totalTarjeta: totalTarjeta,
+                                  totalTransf: totalTransf,
+                                  totalTickets: _historialVentas.length,
+                                );
+                                await PrinterService.imprimirTicketZPL(zpl);
+                                
+                                if (mounted) {
+                                  setState(() {
+                                    _historialVentas.clear();
+                                  });
+                                  _guardarHistorial();
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Corte impreso y turno reiniciado')),
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               );
-              await PrinterService.imprimirTicketZPL(zpl);
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Corte enviado a impresora')));
-              }
             },
           ),
         ),
