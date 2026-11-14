@@ -448,8 +448,6 @@ class _VentaScreenState extends State<VentaScreen> {
 
 
   void _mostrarDialogoLicencia() {
-    final codigoCtrl = TextEditingController();
-
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -540,13 +538,6 @@ class _VentaScreenState extends State<VentaScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              _LiquidTextField(
-                controller: codigoCtrl,
-                label: 'Clave mensual (6 dígitos)',
-                keyboardType: TextInputType.number,
-                isDark: _modoNoche,
-              ),
-              const SizedBox(height: 12),
               SizedBox(
                 height: 52,
                 child: LiquidGlassContainer(
@@ -592,9 +583,9 @@ class _VentaScreenState extends State<VentaScreen> {
                             children: [
                               const Icon(Icons.chat, size: 20, color: Colors.white),
                               const SizedBox(width: 8),
-                              Text(
+                              const Text(
                                 'Ya pagué: Enviar comprobante',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -609,37 +600,7 @@ class _VentaScreenState extends State<VentaScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
-              LiquidPillButton(
-                label: 'Activar Clave',
-                isPrimary: true,
-                isDark: _modoNoche,
-                onPressed: () async {
-                  final ok = await LicenciaService.activarLicencia(codigoCtrl.text);
-                  if (!context.mounted) return;
-                  if (ok) {
-                    setState(() {
-                      _licenciaActiva = true;
-                    });
-                    _fechaVencimiento = await LicenciaService.obtenerFechaVencimiento();
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: LiquidColors.electricJadeLight,
-                        content: const Text('¡Licencia activada correctamente!'),
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: LiquidColors.coralLight,
-                        content: const Text('Clave inválida o ya utilizada'),
-                      ),
-                    );
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               Row(
                 children: [
                   Expanded(
@@ -2109,6 +2070,38 @@ class _VentaScreenState extends State<VentaScreen> {
             ],
           ),
         ),
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: LiquidPillButton(
+            label: 'Imprimir Corte de Caja',
+            isPrimary: false,
+            isDark: _modoNoche,
+            icon: Icons.print,
+            onPressed: () async {
+              if (_historialVentas.isEmpty) return;
+              final totalV = _historialVentas.fold(0.0, (acc, v) => acc + (v['total'] as double));
+              final totalEfectivo = _historialVentas.where((v) => v['metodoPago'] == 'EFECTIVO').fold(0.0, (acc, v) => acc + (v['total'] as double));
+              final totalTarjeta = _historialVentas.where((v) => v['metodoPago'] == 'TARJETA').fold(0.0, (acc, v) => acc + (v['total'] as double));
+              final totalTransf = _historialVentas.where((v) => v['metodoPago'] == 'TRANSFERENCIA').fold(0.0, (acc, v) => acc + (v['total'] as double));
+              
+              final zpl = TicketService().generarCorteZPL(
+                nombreNegocio: _nombreNegocio,
+                direccionTelefono: '$_telefono\n$_datosNegocio',
+                totalVenta: totalV,
+                totalEfectivo: totalEfectivo,
+                totalTarjeta: totalTarjeta,
+                totalTransf: totalTransf,
+                totalTickets: _historialVentas.length,
+              );
+              await PrinterService.imprimirTicketZPL(zpl);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Corte enviado a impresora')));
+              }
+            },
+          ),
+        ),
+        const SizedBox(height: 12),
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -2126,14 +2119,15 @@ class _VentaScreenState extends State<VentaScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Folio: ${venta['folio']}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: _modoNoche ? LiquidColors.textPrimaryDark : LiquidColors.textPrimaryLight,
+                        Expanded(
+                          child: Text(
+                            'Folio: ${venta['folio']}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: _modoNoche ? LiquidColors.textPrimaryDark : LiquidColors.textPrimaryLight,
+                            ),
                           ),
                         ),
                         Text(
@@ -2141,6 +2135,43 @@ class _VentaScreenState extends State<VentaScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        InkWell(
+                          onTap: () async {
+                            final List<dynamic> rawItems = venta['items'];
+                            final List<ItemVenta> arts = rawItems.map((e) => ItemVenta.fromMap(Map<String, dynamic>.from(e))).toList();
+                            final double mTotal = venta['total'];
+                            final String mMetodo = venta['metodoPago'];
+                            
+                            final zpl = TicketService().generarTicketZPL(
+                              nombreNegocio: _nombreNegocio,
+                              rfc: _rfc,
+                              direccionFiscal: _datosNegocio,
+                              telefono: _telefono,
+                              folio: venta['folio'],
+                              cliente: venta['cliente'],
+                              clienteAcd: _clienteAcd,
+                              vendedor: _vendedor,
+                              sucursal: _sucursal,
+                              ruta: _ruta,
+                              articulos: arts,
+                              total: mTotal,
+                              efectivo: mTotal,
+                              cambio: 0.0,
+                              metodoPago: mMetodo,
+                              mensajePie: _mensajePie,
+                            );
+                            await PrinterService.imprimirTicketZPL(zpl);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: Icon(
+                              Icons.print,
+                              color: _modoNoche ? LiquidColors.luminousBlueDark : LiquidColors.luminousBlueLight,
+                              size: 24,
+                            ),
                           ),
                         ),
                       ],
