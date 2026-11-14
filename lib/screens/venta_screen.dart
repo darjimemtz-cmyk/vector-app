@@ -1252,13 +1252,6 @@ class _VentaScreenState extends State<VentaScreen> {
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 isDark: _modoNoche,
               ),
-              const SizedBox(height: 14),
-              _LiquidTextField(
-                controller: stockController,
-                label: 'Existencias (Stock)',
-                keyboardType: TextInputType.number,
-                isDark: _modoNoche,
-              ),
               const SizedBox(height: 16),
               LiquidGlassContainer(
                 borderRadius: 16,
@@ -1341,6 +1334,15 @@ class _VentaScreenState extends State<VentaScreen> {
                   ],
                 ),
               ),
+              if (manejaStockLocal) ...[
+                const SizedBox(height: 14),
+                _LiquidTextField(
+                  controller: stockController,
+                  label: 'Existencias (Stock)',
+                  keyboardType: TextInputType.number,
+                  isDark: _modoNoche,
+                ),
+              ],
               const SizedBox(height: 24),
               Row(
                 children: [
@@ -1428,13 +1430,6 @@ class _VentaScreenState extends State<VentaScreen> {
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 isDark: _modoNoche,
               ),
-              const SizedBox(height: 14),
-              _LiquidTextField(
-                controller: stockController,
-                label: 'Existencias (Stock)',
-                keyboardType: TextInputType.number,
-                isDark: _modoNoche,
-              ),
               const SizedBox(height: 16),
               LiquidGlassContainer(
                 borderRadius: 16,
@@ -1517,6 +1512,15 @@ class _VentaScreenState extends State<VentaScreen> {
                   ],
                 ),
               ),
+              if (manejaStockLocal) ...[
+                const SizedBox(height: 14),
+                _LiquidTextField(
+                  controller: stockController,
+                  label: 'Existencias (Stock)',
+                  keyboardType: TextInputType.number,
+                  isDark: _modoNoche,
+                ),
+              ],
               const SizedBox(height: 24),
               Row(
                 children: [
@@ -1693,6 +1697,25 @@ class _VentaScreenState extends State<VentaScreen> {
                 ),
               ),
               const SizedBox(height: 16),
+              TextButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _cambiarCliente();
+                },
+                icon: Icon(
+                  Icons.flash_on,
+                  size: 18,
+                  color: _modoNoche ? LiquidColors.luminousBlueDark : LiquidColors.luminousBlueLight,
+                ),
+                label: Text(
+                  'Cliente rápido (sin guardar)',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: _modoNoche ? LiquidColors.luminousBlueDark : LiquidColors.luminousBlueLight,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
@@ -2378,7 +2401,7 @@ class _VentaScreenState extends State<VentaScreen> {
             child: Column(
               children: [
                 InkWell(
-                  onTap: _cambiarCliente,
+                  onTap: _mostrarDialogoClientes,
                   borderRadius: BorderRadius.circular(16),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -2732,7 +2755,7 @@ class _VentaScreenState extends State<VentaScreen> {
         child: Column(
           children: [
             InkWell(
-              onTap: _cambiarCliente,
+              onTap: _mostrarDialogoClientes,
               borderRadius: BorderRadius.circular(16),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
