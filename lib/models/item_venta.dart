@@ -4,7 +4,8 @@ class ItemVenta {
   final double precioUnitario;
   int cantidad;
   int stock;
-  final bool gravaIeps; // true: Botana con 8% de IEPS (*), false: Exento (Charras/Tostadas)
+  final bool gravaIeps;
+  final bool manejaStock;
 
   ItemVenta({
     required this.id,
@@ -13,12 +14,10 @@ class ItemVenta {
     this.cantidad = 1,
     this.stock = 10,
     this.gravaIeps = true,
+    this.manejaStock = true,
   });
 
-  // Cálculo automático del importe base en tiempo real
   double get importe => cantidad * precioUnitario;
-
-  // Cálculo del IEPS correspondiente a este renglón (8% si grava)
   double get montoIeps => gravaIeps ? (importe * 0.08) : 0.0;
 
   Map<String, dynamic> toMap() => {
@@ -28,6 +27,7 @@ class ItemVenta {
         'cantidad': cantidad,
         'stock': stock,
         'gravaIeps': gravaIeps,
+        'manejaStock': manejaStock,
       };
 
   factory ItemVenta.fromMap(Map<String, dynamic> map) => ItemVenta(
@@ -37,5 +37,6 @@ class ItemVenta {
         cantidad: map['cantidad'] ?? 1,
         stock: map['stock'] ?? 10,
         gravaIeps: map['gravaIeps'] ?? true,
+        manejaStock: map['manejaStock'] ?? true,
       );
 }

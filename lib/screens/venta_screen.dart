@@ -187,7 +187,7 @@ class _VentaScreenState extends State<VentaScreen> {
 
 
   void _agregarAlCarrito(ItemVenta item) {
-    if (item.stock <= 0) {
+    if (item.manejaStock && item.stock <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('¡${item.descripcion} está agotado!')),
       );
@@ -196,7 +196,7 @@ class _VentaScreenState extends State<VentaScreen> {
 
     final index = _carrito.indexWhere((e) => e.id == item.id);
     if (index >= 0) {
-      if (_carrito[index].cantidad >= item.stock) {
+      if (item.manejaStock && _carrito[index].cantidad >= item.stock) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Stock máximo alcanzado para ${item.descripcion}')),
         );
@@ -217,6 +217,7 @@ class _VentaScreenState extends State<VentaScreen> {
             cantidad: 1,
             stock: item.stock,
             gravaIeps: item.gravaIeps,
+            manejaStock: item.manejaStock,
           ),
         );
         _tabAnterior = _tabSeleccionada;
@@ -248,7 +249,7 @@ class _VentaScreenState extends State<VentaScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Stock disponible: ${prod.stock} pzs',
+                prod.manejaStock ? 'Stock disponible: ${prod.stock} pzs' : 'Stock ilimitado',
                 style: TextStyle(
                   fontSize: 12,
                   color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
@@ -285,8 +286,8 @@ class _VentaScreenState extends State<VentaScreen> {
                   ),
                   _DialogQtyButton(
                     icon: Icons.add_circle,
-                    color: item.cantidad < prod.stock ? LiquidColors.electricJadeLight : LiquidColors.textSecondaryLight,
-                    onPressed: item.cantidad < prod.stock
+                    color: (!prod.manejaStock || item.cantidad < prod.stock) ? LiquidColors.electricJadeLight : LiquidColors.textSecondaryLight,
+                    onPressed: (!prod.manejaStock || item.cantidad < prod.stock)
                         ? () {
                             setState(() => item.cantidad++);
                             setDialogState(() {});
@@ -1187,7 +1188,7 @@ class _VentaScreenState extends State<VentaScreen> {
 
                             for (var item in _carrito) {
                               final prodIndex = _catalogo.indexWhere((p) => p.id == item.id);
-                              if (prodIndex >= 0) {
+                              if (prodIndex >= 0 && _catalogo[prodIndex].manejaStock) {
                                 _catalogo[prodIndex].stock -= item.cantidad;
                               }
                             }
@@ -1219,6 +1220,7 @@ class _VentaScreenState extends State<VentaScreen> {
     final precioController = TextEditingController();
     final stockController = TextEditingController(text: '15');
     bool gravaIepsLocal = true;
+    bool manejaStockLocal = true;
 
     showDialog(
       context: context,
@@ -1298,6 +1300,47 @@ class _VentaScreenState extends State<VentaScreen> {
                   ],
                 ),
               ),
+              const SizedBox(height: 16),
+              LiquidGlassContainer(
+                borderRadius: 16,
+                blurSigma: 12,
+                isDark: _modoNoche,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '¿Controlar Inventario?',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: _modoNoche ? LiquidColors.textPrimaryDark : LiquidColors.textPrimaryLight,
+                            ),
+                          ),
+                          Text(
+                            'Activar para descontar stock. Desactivar para stock infinito',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: manejaStockLocal,
+                      activeColor: _modoNoche ? LiquidColors.electricJadeDark : LiquidColors.electricJadeLight,
+                      activeTrackColor: (_modoNoche ? LiquidColors.electricJadeDark : LiquidColors.electricJadeLight).withOpacity(0.3),
+                      onChanged: (val) {
+                        setDialogState(() => manejaStockLocal = val);
+                      },
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 24),
               Row(
                 children: [
@@ -1329,6 +1372,7 @@ class _VentaScreenState extends State<VentaScreen> {
                                 precioUnitario: precio,
                                 stock: stock,
                                 gravaIeps: gravaIepsLocal,
+                                manejaStock: manejaStockLocal,
                               ),
                             );
                           });
@@ -1352,6 +1396,7 @@ class _VentaScreenState extends State<VentaScreen> {
     final precioController = TextEditingController(text: item.precioUnitario.toStringAsFixed(2));
     final stockController = TextEditingController(text: item.stock.toString());
     bool gravaIepsLocal = item.gravaIeps;
+    bool manejaStockLocal = item.manejaStock;
 
     showDialog(
       context: context,
@@ -1431,6 +1476,47 @@ class _VentaScreenState extends State<VentaScreen> {
                   ],
                 ),
               ),
+              const SizedBox(height: 16),
+              LiquidGlassContainer(
+                borderRadius: 16,
+                blurSigma: 12,
+                isDark: _modoNoche,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '¿Controlar Inventario?',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: _modoNoche ? LiquidColors.textPrimaryDark : LiquidColors.textPrimaryLight,
+                            ),
+                          ),
+                          Text(
+                            'Activar para descontar stock. Desactivar para stock infinito',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: _modoNoche ? LiquidColors.textSecondaryDark : LiquidColors.textSecondaryLight,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: manejaStockLocal,
+                      activeColor: _modoNoche ? LiquidColors.electricJadeDark : LiquidColors.electricJadeLight,
+                      activeTrackColor: (_modoNoche ? LiquidColors.electricJadeDark : LiquidColors.electricJadeLight).withOpacity(0.3),
+                      onChanged: (val) {
+                        setDialogState(() => manejaStockLocal = val);
+                      },
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 24),
               Row(
                 children: [
@@ -1464,6 +1550,7 @@ class _VentaScreenState extends State<VentaScreen> {
                                 cantidad: 1,
                                 stock: stock,
                                 gravaIeps: gravaIepsLocal,
+                                manejaStock: manejaStockLocal,
                               );
                             });
                             _guardarCatalogo();
@@ -1962,7 +2049,7 @@ class _VentaScreenState extends State<VentaScreen> {
               final item = catalogoFiltrado[index];
               return LiquidProductCard(
                 title: item.descripcion,
-                subtitle: 'Stock: ${item.stock} • ${item.gravaIeps ? 'IEPS' : 'Exento'}',
+                subtitle: '${item.manejaStock ? 'Stock: ${item.stock}' : 'Stock: ∞'} • ${item.gravaIeps ? 'IEPS' : 'Exento'}',
                 price: formatMoneda.format(item.precioUnitario),
                 gravaIeps: item.gravaIeps,
                 isDark: _modoNoche,
@@ -2562,7 +2649,7 @@ class _VentaScreenState extends State<VentaScreen> {
         final item = catalogoFiltrado[index];
         return LiquidProductCard(
           title: item.descripcion,
-          subtitle: 'Stock: ${item.stock} • ${item.gravaIeps ? 'IEPS' : 'Exento'}',
+          subtitle: '${item.manejaStock ? 'Stock: ${item.stock}' : 'Stock: ∞'} • ${item.gravaIeps ? 'IEPS' : 'Exento'}',
           price: formatMoneda.format(item.precioUnitario),
           gravaIeps: item.gravaIeps,
           isDark: _modoNoche,
@@ -2888,20 +2975,31 @@ class _VentaScreenState extends State<VentaScreen> {
               const SizedBox(height: 12),
               Expanded(
                 child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 340),
-                  switchInCurve: const Cubic(0.2, 0.9, 0.2, 1.0),
-                  switchOutCurve: const Cubic(0.2, 0.9, 0.2, 1.0),
+                  duration: const Duration(milliseconds: 450),
+                  switchInCurve: Curves.easeOutBack,
+                  switchOutCurve: Curves.easeInBack,
                   transitionBuilder: (child, animation) {
                     final bool vaADerecha = _tabSeleccionada >= _tabAnterior;
                     final bool esEntrante = child.key == ValueKey<int>(_tabSeleccionada);
                     final Offset inicio = esEntrante
-                        ? Offset(vaADerecha ? 0.06 : -0.06, 0)
-                        : Offset(vaADerecha ? -0.06 : 0.06, 0);
+                        ? Offset(vaADerecha ? 0.08 : -0.08, 0)
+                        : Offset(vaADerecha ? -0.08 : 0.08, 0);
+
+                    final slideAnim = Tween<Offset>(begin: inicio, end: Offset.zero).animate(
+                      CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)
+                    );
+                    final scaleAnim = Tween<double>(begin: 0.97, end: 1.0).animate(
+                      CurvedAnimation(parent: animation, curve: Curves.easeOutBack)
+                    );
+
                     return FadeTransition(
                       opacity: animation,
                       child: SlideTransition(
-                        position: Tween<Offset>(begin: inicio, end: Offset.zero).animate(animation),
-                        child: child,
+                        position: slideAnim,
+                        child: ScaleTransition(
+                          scale: scaleAnim,
+                          child: child,
+                        ),
                       ),
                     );
                   },

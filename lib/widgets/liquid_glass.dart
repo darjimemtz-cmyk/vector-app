@@ -63,7 +63,9 @@ class LiquidGlassContainer extends StatelessWidget {
               borderRadius: borderRadius,
               isDark: isDark,
             ),
-            child: Container(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 450),
+              curve: Curves.easeOutCubic,
               padding: padding,
               decoration: BoxDecoration(
                 borderRadius: effectiveBorderRadius,
@@ -172,7 +174,9 @@ class LiquidMeshBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOutCubic,
       color: isDark ? LiquidColors.backgroundDark : LiquidColors.backgroundLight,
       child: Stack(
         children: [
@@ -867,10 +871,20 @@ class LiquidAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         if (onThemeToggle != null)
           IconButton(
-            icon: Icon(
-              isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-              color: iconColor,
-              size: 26,
+            icon: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 450),
+              transitionBuilder: (child, animation) => RotationTransition(
+                turns: Tween<double>(begin: 0.5, end: 1.0).animate(
+                  CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+                ),
+                child: ScaleTransition(scale: animation, child: child),
+              ),
+              child: Icon(
+                isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                key: ValueKey<bool>(isDark),
+                color: iconColor,
+                size: 26,
+              ),
             ),
             onPressed: onThemeToggle,
             tooltip: isDark ? 'Modo claro' : 'Modo noche',
